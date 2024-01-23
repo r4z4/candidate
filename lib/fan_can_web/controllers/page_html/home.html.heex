@@ -1,0 +1,35 @@
+<.flash_group flash={@flash} />
+<section class="h-screen bg-cover" style="bg-slate-800">
+  <div class="flex h-full w-full items-center justify-center container mx-auto px-8">
+    <div class="max-w-4xl text-center border-2 border-solid border-white p-8">
+      <h1 class="text-3xl sm:text-5xl capitalize tracking-widest text-white lg:text-7xl">Fan Can</h1>
+
+      <%= if @current_user do %>
+        <h5 class="text-2xl mt-2 sm:text-2xl tracking-widest text-white lg:text-3xl">Hello, <%= assigns.current_user.username %>. To view information for <%= assigns.current_user.state %>, please follow the link.</h5>
+          <.link href={~p"/home"}><Heroicons.LiveView.icon name="home" type="outline" class="mt-2 h-14 w-14 text-sky-500 inline" /></.link>
+          <.link href={~p"/home"}><img class="m-auto text-center w-1/5" src={~p"/images/state_svg/#{Atom.to_string(@current_user.state) |> String.downcase()}/outline.svg"} /></.link>
+      <% else %>
+        <h3 class="text-2xl sm:text-2xl tracking-widest text-white lg:text-3xl">Please <.link hover:text-zinc-700 href={~p"/users/log_in"}>Log in <Heroicons.LiveView.icon name="arrow-right-on-rectangle" type="outline" class="inline h-14 w-14 text-sky-500" /></.link> to Continue</h3>
+      <% end %>
+
+      <p class="mt-6 lg:text-lg text-white">You can subscribe to our newsletter here as well.</p>
+
+      <div class="mt-8 flex flex-col space-y-3 sm:-mx-2 sm:flex-row sm:justify-center sm:space-y-0">
+        <input id="email" type="text" class="rounded-md border border-transparent bg-white/20 px-4 py-2 text-white placeholder-white backdrop-blur-sm focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40 sm:mx-2" placeholder="Email Address" />
+        <button class="transform rounded-md bg-blue-700 px-8 py-2 text-sm font-medium capitalize tracking-wide text-white transition-colors duration-200 hover:bg-blue-600 focus:bg-blue-600 focus:outline-none sm:mx-2">Notify Me</button>
+      </div>
+
+      <p class="mt-6 lg:text-lg text-white">Explore other states while you are here!</p>
+
+      <div class="mt-8 flex flex-col space-y-3 sm:-mx-2 sm:flex-row sm:justify-center sm:space-y-0">
+      <select data-te-select-init data-te-select-clear-button="true"
+        class="peer h-full w-full rounded-[7px] border border-blue-gray-200 border-t-transparent bg-slate-100 px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 empty:!bg-red-500 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50">
+        <%= for {abbr,name} <- map_zip() do %>
+          <option value={abbr}><%= name %></option>
+        <% end %> 
+      </select>   
+      <button class="transform rounded-md bg-blue-700 px-8 py-2 text-sm font-medium capitalize tracking-wide text-white transition-colors duration-200 hover:bg-blue-600 focus:bg-blue-600 focus:outline-none sm:mx-2">Go</button>
+      </div>
+    </div>
+  </div>
+</section>
