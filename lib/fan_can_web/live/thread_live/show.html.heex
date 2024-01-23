@@ -1,0 +1,70 @@
+<.header>
+  Thread <%= @thread.id %>
+  <:subtitle>This is a thread record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/threads/#{@thread}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit thread</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Title"><%= @thread.title %></:item>
+  <:item title="Creator"><%= @thread.creator %></:item>
+  <:item title="Content"><%= @thread.content %></:item>
+  <:item title="Likes"><%= @thread.likes %></:item>
+  <:item title="Shares"><%= @thread.shares %></:item>
+</.list>
+
+<.back navigate={~p"/threads"}>Back to threads</.back>
+
+<section class="h-screen w-8/9 bg-slate-800 border-2 border-amber-500 rounded-md p-8">
+    <h1 class="text-center font-bold text-2xl text-white"><%= @page_title %></h1>
+    <.header>
+    <:actions>
+      <.link patch={~p"/threads/#{@thread}/show/new_post"} phx-click={JS.push_focus()}>
+        <.button>New Post</.button>
+      </.link>
+    </:actions>
+  </.header>
+
+    <div class="grid justify-center md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-5 my-10">
+      <!-- Post -->
+        <div :for={post <- @posts} class="bg-slate-700 rounded-lg border shadow-md max-w-xs md:max-w-none overflow-hidden">
+            <div class="p-1 text-white">
+                <p class="font-bold"><%= post.title %></p>
+                <div><p class="text-xs mb-2"><%= post.author %><span class="ml-6 inline text-xs text-right"><%= post.updated_at.month %> <%= post.updated_at.day %> <%= post.updated_at.year %></span></p></div>
+                  <button :if={Enum.member?(@post_upvote_ids, post.id)} disabled={(Enum.member?(@post_upvote_ids ++ @post_downvote_ids, post.id) or post.author == @current_user.username)} phx-click="upvote_click" phx-value-id={post.id}><Heroicons.LiveView.icon name="arrow-up-circle" type="solid" class="h-5 w-5 text-green-500" /></button>
+                  <button :if={!Enum.member?(@post_upvote_ids, post.id)} disabled={(Enum.member?(@post_upvote_ids ++ @post_downvote_ids, post.id) or post.author == @current_user.username)} phx-click="upvote_click" phx-value-id={post.id}><Heroicons.LiveView.icon name="arrow-up-circle" type="outline" class="h-5 w-5 text-black" /></button>
+
+                  <button :if={Enum.member?(@post_downvote_ids, post.id)} disabled={(Enum.member?(@post_upvote_ids ++ @post_downvote_ids, post.id) or post.author == @current_user.username)} phx-click="downvote_click" phx-value-id={post.id}><Heroicons.LiveView.icon name="arrow-down-circle" type="solid" class="h-5 w-5 text-red-500" /></button>
+                  <button :if={!Enum.member?(@post_downvote_ids, post.id)} disabled={(Enum.member?(@post_upvote_ids ++ @post_downvote_ids, post.id) or post.author == @current_user.username)} phx-click="downvote_click" phx-value-id={post.id}><Heroicons.LiveView.icon name="arrow-down-circle" type="outline" class="h-5 w-5 text-black" /></button>
+                <div><p><%= post.content %></p></div>
+                <Heroicons.LiveView.icon name="arrow-uturn-left" class="h-3 w-3" />
+            </div>
+        </div>
+    </div>
+</section>
+
+<.modal :if={@live_action == :edit} id="thread-modal" show on_cancel={JS.patch(~p"/threads/#{@thread}")}>
+  <.live_component
+    module={FanCanWeb.ThreadLive.FormComponent}
+    id={@thread.id}
+    title={@page_title}
+    action={@live_action}
+    thread={@thread}
+    patch={~p"/threads/#{@thread}"}
+  />
+</.modal>
+
+<.modal :if={@live_action == :new_post} id="thread-modal" show on_cancel={JS.patch(~p"/threads/#{@thread}")}>
+  <.live_component
+    module={FanCanWeb.ThreadLive.PostFormComponent}
+    id={@thread.id}
+    title={@page_title}
+    current_user={@current_user}
+    action={@live_action}
+    thread={@thread}
+    patch={~p"/posts"}
+  />
+</.modal>

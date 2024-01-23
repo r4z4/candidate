@@ -1,0 +1,45 @@
+<.header>
+  Listing Threads
+  <:actions>
+    <.link patch={~p"/threads/new"}>
+      <.button>New Thread</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="threads"
+  rows={@streams.threads}
+  row_click={fn {_id, thread} -> JS.navigate(~p"/threads/#{thread}") end}
+>
+  <:col :let={{_id, thread}} label="Title"><%= thread.title %></:col>
+  <:col :let={{_id, thread}} label="Creator"><%= thread.creator_name %></:col>
+  <:col :let={{_id, thread}} label="Content"><%= thread.content %></:col>
+  <:col :let={{_id, thread}} label="Likes"><%= thread.likes %></:col>
+  <:col :let={{_id, thread}} label="Shares"><%= thread.shares %></:col>
+  <:action :let={{_id, thread}}>
+    <div class="sr-only">
+      <.link navigate={~p"/threads/#{thread}"}>Show</.link>
+    </div>
+    <.link :if={get_permissions(@current_user.role) |> edit?(:thread)} patch={~p"/threads/#{thread}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, thread}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: thread.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="thread-modal" show on_cancel={JS.patch(~p"/threads")}>
+  <.live_component
+    module={FanCanWeb.ThreadLive.FormComponent}
+    id={@thread.id || :new}
+    title={@page_title}
+    action={@live_action}
+    thread={@thread}
+    patch={~p"/threads"}
+  />
+</.modal>
