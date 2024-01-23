@@ -26,7 +26,7 @@ defmodule FanCanWeb.HomeLive do
   def mount(_params, session, socket) do
     # Send to ETS table vs storing in socket
     # g_candidates = api_query(socket.assigns.current_user.state)
-    task = 
+    task =
       Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
         IO.puts("Hey from a task")
         api_query(socket.assigns.current_user.state)
@@ -57,12 +57,12 @@ defmodule FanCanWeb.HomeLive do
     # send pid, {:subscribe_user_published, socket.assigns.current_user_published_ids}
     # # ThinWrapper.put("game_data", game_data)
     # # game_data = ThinWrapper.get("game_data")
-    floor_task = 
+    floor_task =
       Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
         IO.puts("Hey from a task")
         floor_actions = floor_query("house")
       end)
-    
+
     {:ok,
      socket
      |> assign(:messages, [])
@@ -168,7 +168,7 @@ defmodule FanCanWeb.HomeLive do
           </div>
 
           <div class="text-center m-auto border-solid border-2 border-white rounded-lg p-2">
-            <div class="text-white inline"><Heroicons.LiveView.icon name="star" type="outline" class="inline h-5 w-5 text-white m-2" /> 
+            <div class="text-white inline"><Heroicons.LiveView.icon name="star" type="outline" class="inline h-5 w-5 text-white m-2" />
               Your List of Favorites
             </div>
             <div class="text-white">
@@ -188,7 +188,7 @@ defmodule FanCanWeb.HomeLive do
               </div>
             </div>
           </div>
-        
+
         </div>
 
         <StateSnapshot.display state={@current_user.state} g_candidates={@g_candidates}/>
@@ -212,7 +212,7 @@ defmodule FanCanWeb.HomeLive do
   def handle_event("send_message", %{"message" => %{"text" => text, "subject" => subject, "to" => to, "patch" => patch}}, socket) do
     Logger.info("Params are #{text} and #{subject} and to is #{to}", ansi_color: :blue_background)
     case attrs = %{id: UUIDv7.generate(), to: to, from: socket.assigns.current_user.id, subject: subject, type: :p2p, text: text} |> FanCan.Site.create_message() do
-      {:ok, _} -> 
+      {:ok, _} ->
         notif = "Your message has been sent!"
         recv = %{type: :p2p, string: "New Message Received"}
         FanCanWeb.Endpoint.broadcast!("user_" <> to, "new_message", recv)
@@ -220,7 +220,7 @@ defmodule FanCanWeb.HomeLive do
           socket
           |> put_flash(:info, notif)
           |> push_navigate(to: patch)}
-      {:error, changeset} -> 
+      {:error, changeset} ->
         Logger.info("Send Message Erroer", ansi_color: :yellow)
         notif = "Error Sending Message."
         {:noreply,
@@ -260,7 +260,7 @@ defmodule FanCanWeb.HomeLive do
   def api_query(state) do
     state_str = get_str(state)
     {:ok, resp} =
-      Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/representatives?address=#{state_str}&key=#{System.fetch_env!("GCLOUD_PROJECT")}")
+      Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/representatives?address=#{state_str}&key=#{System.fetch_env!("GCLOUD_API_KEY")}")
       |> Finch.request(FanCan.Finch)
 
     {:ok, body} = Jason.decode(resp.body)

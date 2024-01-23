@@ -7,6 +7,10 @@ defmodule FanCan.Application do
 
   @impl true
   def start(_type, _args) do
+    # Query here includes all queries. Tried :insert. Not needed.
+    :ok = :telemetry.attach("ecto-logger", [:fan_can, :repo, :query], &FanCan.EctoLogger.handle_event/4, %{})
+    :ets.new(:mailbox_registry, [:set, :public, :named_table])
+
     children = [
       # Start the Telemetry supervisor
       FanCanWeb.Telemetry,
@@ -14,12 +18,13 @@ defmodule FanCan.Application do
       FanCan.Repo,
       # Start the PubSub system
       {Phoenix.PubSub, name: FanCan.PubSub},
-      # FanCan.Presence,
-      # FanCan.ThinWrapper,
+      FanCan.Presence,
+      FanCan.ThinWrapper,
       # Start Finch
       {Finch, name: FanCan.Finch},
       # Start the Endpoint (http/https)
-      FanCanWeb.Endpoint
+      FanCanWeb.Endpoint,
+      {Task.Supervisor, name: FanCan.TaskSupervisor}
       # Start a worker by calling: FanCan.Worker.start_link(arg)
       # {FanCan.Worker, arg}
     ]
