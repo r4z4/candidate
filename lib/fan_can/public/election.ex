@@ -3,7 +3,7 @@ defmodule FanCan.Public.Election do
   import Ecto.Changeset
   alias FanCan.Core.Utils
   alias FanCan.Public
-  
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "elections" do
@@ -22,7 +22,7 @@ defmodule FanCan.Public.Election do
     |> validate_required([:year, :state, :desc])
   end
 
-  alias FanCan.Public.{Election, Candidate, Legislator}  
+  alias FanCan.Public.{Election, Candidate, Legislator}
   alias FanCan.Core.Holds
   alias FanCan.Accounts.{UserHolds, User, UserToken}
   alias FanCan.Public.Election.{RaceHolds, Ballot, Race, ElectionHolds, CandidateHolds}
@@ -50,12 +50,12 @@ defmodule FanCan.Public.Election do
       join: b in Ballot,
       on: b.election_id == e.id,
       where: b.id == ^ballot_id,
-      where: r.district != "",
+      # where: r.district != "",
       order_by: [asc: r.district],
       # FIXME Change this to confirmed_at > inserted_at
       # Or can do "id" => r.id, "candidates" => .... then access via ballot_race["id"] in template.
       select: %{:id => r.id, :candidates => r.candidates, :seat => r.seat, :district => r.district, :election_id => e.id, :desc => "Legislator ballot race"}
-      # select: {u.username, u.email, u.inserted_at, us.easy_games_played, us.easy_games_finished, us.med_games_played, us.med_games_finished, us.hard_games_played, us.hard_games_finished, 
+      # select: {u.username, u.email, u.inserted_at, us.easy_games_played, us.easy_games_finished, us.med_games_played, us.med_games_finished, us.hard_games_played, us.hard_games_finished,
       #           us.easy_poss_pts, us.easy_earned_pts, us.med_poss_pts, us.med_earned_pts, us.hard_poss_pts, us.hard_earned_pts}
       # distinct: p.id
       # where: u.age > type(^age, :integer)
@@ -329,12 +329,12 @@ defmodule FanCan.Public.Election do
   def register_upvote_downvote(attrs) do
     # For now this'll always just be a post. might not always be though
     case Map.fetch(attrs, :type) do
-      {:ok, :upvote} -> 
+      {:ok, :upvote} ->
         %Holds{}
           |> Holds.changeset(attrs)
           |> Repo.insert(returning: true)
 
-      {:ok, :downvote} -> 
+      {:ok, :downvote} ->
         %Holds{}
           |> Holds.changeset(attrs)
           |> Repo.insert(returning: true)
@@ -345,17 +345,17 @@ defmodule FanCan.Public.Election do
 
   def register_alert(attrs) do
     case Map.fetch(attrs, :hold_cat) do
-      {:ok, :race} -> 
+      {:ok, :race} ->
         %Holds{}
           |> Holds.changeset(attrs)
           |> Repo.insert(returning: true)
 
-      {:ok, :election} -> 
+      {:ok, :election} ->
         %Holds{}
           |> Holds.changeset(attrs)
           |> Repo.insert(returning: true)
 
-      {:ok,:user} -> 
+      {:ok,:user} ->
         %Holds{}
         |> Holds.changeset(attrs)
         |> Repo.insert(returning: true)
@@ -366,17 +366,17 @@ defmodule FanCan.Public.Election do
 
   def register_bookmark(attrs) do
     case Map.fetch(attrs, :hold_cat) do
-      {:ok, :race} -> 
+      {:ok, :race} ->
         %Holds{}
           |> Holds.changeset(attrs)
           |> Repo.insert(returning: true)
 
-      {:ok, :election} -> 
+      {:ok, :election} ->
         %Holds{}
           |> Holds.changeset(attrs)
           |> Repo.insert(returning: true)
       # Can you bookmark a user? Probably not
-      {:ok, :user} -> 
+      {:ok, :user} ->
         %Holds{}
         |> Holds.changeset(attrs)
         |> Repo.insert(returning: true)
@@ -387,7 +387,7 @@ defmodule FanCan.Public.Election do
 
   def register_hold(attrs) do
     case Map.fetch(attrs, :hold_cat) do
-      {:ok, _} -> 
+      {:ok, _} ->
         %Holds{}
           |> Holds.changeset(attrs)
           |> Repo.insert(returning: true)
@@ -405,12 +405,12 @@ defmodule FanCan.Public.Election do
       where: h.type == ^attrs.type,
       select: h
     hold = FanCan.Repo.one(query)
-    
+
     if hold do
       Accounts.update_hold(hold, active: true)
     else
       case Map.fetch(attrs, :hold_cat) do
-        {:ok, :candidate} -> 
+        {:ok, :candidate} ->
           %Holds{}
             |> Holds.changeset(attrs)
             |> Repo.insert(returning: true)
@@ -422,7 +422,7 @@ defmodule FanCan.Public.Election do
 
   def register_ballot(attrs) do
     case Map.fetch(attrs, :user_id) do
-      {:ok, _} -> 
+      {:ok, _} ->
         get_ballot!(attrs.id)
         |> update_ballot(attrs)
 

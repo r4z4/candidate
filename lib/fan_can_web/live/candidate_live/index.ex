@@ -37,9 +37,9 @@ defmodule FanCanWeb.CandidateLive.Index do
     end
 
     loc_info = get_voter_info(socket.assigns.current_user)
-    
-    
-    {:ok, 
+
+
+    {:ok,
      socket
      |> stream(:candidates, result.entries)
      |> stream(:stream_messages, [])
@@ -52,13 +52,13 @@ defmodule FanCanWeb.CandidateLive.Index do
 
   defp get_voter_info(user) do
     IO.inspect(user, label: "User in Voter Info")
-    {:ok, resp} = 
-      Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/voterinfo?address=12%20M%20#{user.city}%2C%20#{user.state}&electionId=2000&key=#{System.fetch_env!("GCLOUD_PROJECT")}") 
+    {:ok, resp} =
+      Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/voterinfo?address=12%20M%20#{user.city}%2C%20#{user.state}&electionId=2000&key=#{System.fetch_env!("GCLOUD_API_KEY")}")
       |> Finch.request(FanCan.Finch)
 
     {:ok, body} = Jason.decode(resp.body)
 
-    filtered = 
+    filtered =
       Enum.filter(body["contests"], fn(contest) ->
         Map.has_key?(contest, "candidates")
       end)
@@ -116,8 +116,8 @@ defmodule FanCanWeb.CandidateLive.Index do
     updated_messages = socket.assigns[:messages] ++ [new_message]
     IO.inspect(new_message, label: "New Message")
 
-    {:noreply, 
-     socket 
+    {:noreply,
+     socket
      |> assign(:messages, updated_messages)
      |> put_flash(:info, "PubSub: #{new_message}")}
   end

@@ -14,12 +14,12 @@ defmodule FanCanWeb.BallotLive.Template do
 
   @impl true
   def mount(_params, _session, socket) do
-    vote_list = 
+    vote_list =
       Enum.filter(socket.assigns.current_user_holds.candidate_holds, fn hold -> Map.fetch!(hold, :type) == :vote end)
       |> Enum.filter(fn x -> x.active == true end)
       |> comprehend()
 
-    {:ok, 
+    {:ok,
       socket
       |> assign(:vote_list, vote_list)}
   end
@@ -69,11 +69,11 @@ defmodule FanCanWeb.BallotLive.Template do
   def handle_params(%{"id" => id}, _, socket) do
     ballot_races = Election.get_ballot_races(id)
     Logger.info("Template Issue #{inspect ballot_races}", ansi_color: :yellow)
-    final_ballot_races = 
+    final_ballot_races =
       for ballot_race <- ballot_races do
         # candidates = Election.get_candidates(ballot_race.id)
         candidates = Election.get_legislators_from_ids(ballot_race.candidates)
-        new = 
+        new =
           Map.replace(ballot_race, :candidates, candidates)
       end
     Logger.info("Template Issue #{inspect final_ballot_races}", ansi_color: :green)
@@ -93,14 +93,14 @@ defmodule FanCanWeb.BallotLive.Template do
     IO.inspect(attrs, label: "attrs")
       # FIXME: Move to RegisterHandlers
       case Election.register_hold(attrs) do
-        {:ok, hold} -> 
+        {:ok, hold} ->
           {:noreply,
             socket
             |> assign(:current_user_holds, Map.put(socket.assigns.current_user_holds, :race_holds, [hold | socket.assigns.current_user_holds.race_holds]))
             |> put_flash(:info, "We have set a #{type} for #{attrs.hold_cat}: #{id}")}
 
         {:error, %Ecto.Changeset{} = changeset} ->
-          {:noreply, 
+          {:noreply,
             socket
             |> put_flash(:error, "Error adding a #{type} for #{attrs.hold_cat}")}
       end
@@ -121,7 +121,7 @@ defmodule FanCanWeb.BallotLive.Template do
       [:ok, :ok] -> IO.puts("Got the OKOK")
       _          -> IO.puts("NO Ok____Ok")
     end
-    {:noreply, 
+    {:noreply,
       socket
       # Alter the assigns so the page will refresh and checkmark will be cleared
       |> assign(:vote_list, [Enum.reject(socket.assigns.vote_list, fn x -> x in candidate_list end)])
@@ -134,22 +134,22 @@ defmodule FanCanWeb.BallotLive.Template do
 
   def add_or_replace(attrs, candidate_ids, socket) do
     # race = Enum.find(socket.assigns.ballot_races, fn br -> br = district end)
-    # opponents =       
+    # opponents =
     #   Enum.filter(race.candidates, fn(c) -> if c.id != attrs.candidate_id, do: c.id, else: nil end)
     # IO.inspect(opponents, label: "Opponent")
     has_voted = Enum.find(socket.assigns.vote_list, fn v -> v in candidate_ids end)
     if has_voted do
       case Election.unregister_votes([has_voted], :candidate) do # Remove Previous Vote
-        {:ok, struct} -> 
+        {:ok, struct} ->
           case Election.register_vote(attrs) do
-            {:ok, holds} -> 
+            {:ok, holds} ->
               {:noreply,
                 socket
                 |> assign(:vote_list, [attrs.hold_cat_id | List.delete(socket.assigns.vote_list, has_voted)])
                 |> put_flash(:info, "Successfully voted for: #{attrs.hold_cat_id}")}
 
             {:error, %Ecto.Changeset{} = changeset} ->
-              {:noreply, 
+              {:noreply,
                 socket
                 |> put_flash(:error, "Error adding alert for #{attrs.hold_cat_id}")}
           end
@@ -159,14 +159,14 @@ defmodule FanCanWeb.BallotLive.Template do
       end
     else
       case Election.register_vote(attrs) do
-        {:ok, holds} -> 
+        {:ok, holds} ->
           {:noreply,
             socket
             |> assign(:vote_list, [attrs.hold_cat_id | socket.assigns.vote_list])
             |> put_flash(:info, "Successfully voted for: #{attrs.hold_cat_id}")}
 
         {:error, %Ecto.Changeset{} = changeset} ->
-          {:noreply, 
+          {:noreply,
             socket
             |> put_flash(:error, "Error adding alert for #{attrs.hold_cat_id}")}
       end
@@ -204,23 +204,23 @@ defmodule FanCanWeb.BallotLive.Template do
     ballot_form = format_vote_map(socket.assigns.vote_list, socket.assigns.election_id, socket.assigns.ballot_races)
     attrs = %{id: socket.assigns.ballot.id, user_id: socket.assigns.current_user.id, vote_map: ballot_form, submitted: true, election_id: socket.assigns.election_id, updated_at: NaiveDateTime.utc_now()}
       case Election.register_ballot(attrs) do
-        {:ok, ballot} -> 
+        {:ok, ballot} ->
           {:noreply,
             socket
             |> put_flash(:info, "Successfully Submitted Ballot")
             |> push_navigate(to: ~p"/elections/main")}
 
         {:error, %Ecto.Changeset{} = changeset} ->
-          {:noreply, 
+          {:noreply,
             socket
             |> put_flash(:error, "Error Submitting Ballot")}
       end
   end
-  
+
   def format_vote_map(vote_list, election_id, ballot_races) do
     # IO.inspect(first_map, label: "First Map")
 
-    ballot_list = Enum.map(ballot_races, fn br -> %{:district => br.district, :candidates => Enum.map(br.candidates, fn c -> c.id end)} end) 
+    ballot_list = Enum.map(ballot_races, fn br -> %{:district => br.district, :candidates => Enum.map(br.candidates, fn c -> c.id end)} end)
                  |> Enum.map(fn x -> if intersected = MapSet.intersection(MapSet.new(x.candidates), MapSet.new(vote_list)), do: Map.put(x, :votes, MapSet.to_list(intersected)), else: Map.put(x, :votes, []) end)
     ballot_map = Map.new() |> Map.put(String.to_atom(election_id), ballot_list)
     # IO.inspect(ballot_map, label: "ballot_map")

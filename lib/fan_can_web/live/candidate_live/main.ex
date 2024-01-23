@@ -39,7 +39,7 @@ defmodule FanCanWeb.CandidateLive.Main do
     loc_info = get_voter_info(socket.assigns.current_user)
     nominations = api_query(socket.assigns.current_user.state)
 
-    {:ok, 
+    {:ok,
      socket
      |> stream(:candidates, result.entries)
      |> stream(:stream_messages, [])
@@ -54,13 +54,13 @@ defmodule FanCanWeb.CandidateLive.Main do
 
   defp get_voter_info(user) do
     IO.inspect(user, label: "User in Voter Info")
-    {:ok, resp} = 
-      Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/voterinfo?address=12%20M%20#{user.city}%2C%20#{user.state}&electionId=2000&key=#{System.fetch_env!("GCLOUD_PROJECT")}") 
+    {:ok, resp} =
+      Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/voterinfo?address=12%20M%20#{user.city}%2C%20#{user.state}&electionId=2000&key=#{System.fetch_env!("GCLOUD_API_KEY")}")
       |> Finch.request(FanCan.Finch)
 
     {:ok, body} = Jason.decode(resp.body)
 
-    filtered = 
+    filtered =
       Enum.filter(body["contests"], fn(contest) ->
         Map.has_key?(contest, "candidates")
       end)
