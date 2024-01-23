@@ -1,0 +1,45 @@
+<.header>
+  Listing Races
+  <:actions>
+    <.link patch={~p"/races/new"}>
+      <.button>New Race</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="races"
+  rows={@streams.races}
+  row_click={fn {_id, race} -> JS.navigate(~p"/races/#{race}") end}
+>
+  <:col :let={{_id, race}} label="Candidates"><%= race.candidates %></:col>
+  <:col :let={{_id, race}} label="Seat"><%= race.seat %></:col>
+  <:col :let={{_id, race}} label="Elect Percentage"><%= race.elect_percentage %></:col>
+  <:col :let={{_id, race}} label="District"><%= race.district %></:col>
+  <:col :let={{_id, race}} label="Attachments"><%= race.attachments %></:col>
+  <:action :let={{_id, race}}>
+    <div class="sr-only">
+      <.link navigate={~p"/races/#{race}"}>Show</.link>
+    </div>
+    <.link patch={~p"/races/#{race}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, race}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: race.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="race-modal" show on_cancel={JS.patch(~p"/races")}>
+  <.live_component
+    module={FanCanWeb.RaceLive.FormComponent}
+    id={@race.id || :new}
+    title={@page_title}
+    action={@live_action}
+    race={@race}
+    patch={~p"/races"}
+  />
+</.modal>

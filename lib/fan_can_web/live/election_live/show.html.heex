@@ -1,0 +1,32 @@
+<div class="max-w-2xl mx-auto"> 
+  <.header>
+    Election <%= @election.id %>
+    <:subtitle>This is a election record from your database.</:subtitle>
+    <:actions>
+      <.link patch={~p"/elections/#{@election}/show/edit"} phx-click={JS.push_focus()}>
+        <.button>Edit election</.button>
+      </.link>
+    </:actions>
+  </.header>
+
+  <.list>
+    <:item title="Year"><%= @election.year %></:item>
+    <:item title="State"><%= @election.state %></:item>
+    <:item title="Desc"><%= @election.desc %></:item>
+    <:item title="Election Date"><%= @election.election_date %></:item>
+  </.list>
+
+  <.back navigate={~p"/elections"}>Back to elections</.back>
+</div>
+
+<.modal :if={@live_action == :edit} id="election-modal" show on_cancel={JS.patch(~p"/elections/#{@election}")}>
+  <.live_component
+    module={FanCanWeb.ElectionLive.FormComponent}
+    id={@election.id}
+    title={@page_title}
+    user={@current_user}
+    action={@live_action}
+    election={@election}
+    patch={~p"/elections/#{@election}"}
+  />
+</.modal>

@@ -1,0 +1,45 @@
+<.header>
+    <:actions>
+      <.link patch={~p"/forums/main/#{@forum}/new_thread"} phx-click={JS.push_focus()}>
+        <.button>New Thread</.button>
+      </.link>
+    </:actions>
+</.header>
+<CatStats.display cat="Forum", obj={@forum} />
+<.back navigate={~p"/forums/main"}>Back to forums</.back>
+
+<section class="h-screen w-screen bg-slate-800 p-8">
+    <h1 class="text-center font-bold text-2xl text-indigo-500"><%= @page_title %></h1>
+
+    <PageNav.display enum={[]} current_user={@current_user}/>
+
+    <div class="grid justify-center md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-5 my-10">
+      <!-- Card -->
+        <div :for={thread <- @threads} class="bg-slate-500 text-white rounded-lg border shadow-md max-w-xs md:max-w-none overflow-hidden">
+            <div class="p-3">
+                <h3 class="font-semibold text-xl leading-6 my-2">
+                    <a href={~p"/threads/#{thread.id}"}><%= thread.title %></a>
+                </h3>
+                <div><p class="text-xs"><%= thread.creator %></p></div>
+                <button :if={false} phx-click="like_click" phx-value-id={thread.id}><Heroicons.LiveView.icon name="star" type="outline" class="h-5 w-5 text-black" /></button>
+                <button :if={true} phx-click="like_click" phx-value-id={thread.id} disabled><Heroicons.LiveView.icon name="star" type="solid" class="h-5 w-5 text-yellow-500" /></button>
+
+                <button :if={false} phx-click="share_click" phx-value-id={thread.id}><Heroicons.LiveView.icon name="share" type="outline" class="h-5 w-5 text-black" /></button>
+                <button :if={true} phx-click="share_click" phx-value-id={thread.id}><Heroicons.LiveView.icon name="share" type="solid" class="h-5 w-5 text-sky-400" /></button>
+                <div><p><%= thread.content %></p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<.modal :if={@live_action == :new_thread} id="thread-modal" show on_cancel={JS.patch(~p"/forums/main/#{@forum}")}>
+  <.live_component
+    module={FanCanWeb.ForumLive.ThreadFormComponent}
+    id={@forum.id}
+    title={@page_title}
+    current_user={@current_user}
+    action={@live_action}
+    forum={@forum}
+    patch={~p"/forums/main/#{@forum}"}
+  />
+</.modal>

@@ -1,0 +1,43 @@
+<.header>
+  Listing Ballots
+  <:actions>
+    <.link patch={~p"/ballots/new"}>
+      <.button>New Ballot</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="ballots"
+  rows={@streams.ballots}
+  row_click={fn {_id, ballot} -> JS.navigate(~p"/ballots/#{ballot}") end}
+>
+  <:col :let={{_id, ballot}} label="Columns"><%= ballot.columns %></:col>
+  <:col :let={{_id, ballot}} label="Attachment"><%= ballot.attachment %></:col>
+  <:col :let={{_id, ballot}} label="Election"><%= ballot.election %></:col>
+  <:action :let={{_id, ballot}}>
+    <div class="sr-only">
+      <.link navigate={~p"/ballots/#{ballot}"}>Show</.link>
+    </div>
+    <.link patch={~p"/ballots/#{ballot}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, ballot}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: ballot.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="ballot-modal" show on_cancel={JS.patch(~p"/ballots")}>
+  <.live_component
+    module={FanCanWeb.BallotLive.FormComponent}
+    id={@ballot.id || :new}
+    title={@page_title}
+    action={@live_action}
+    ballot={@ballot}
+    patch={~p"/ballots"}
+  />
+</.modal>

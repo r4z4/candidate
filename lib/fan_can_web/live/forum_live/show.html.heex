@@ -1,0 +1,30 @@
+<.header>
+  Forum <%= @forum.id %>
+  <:subtitle>This is a forum record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/forums/#{@forum}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit forum</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Title"><%= @forum.title %></:item>
+  <:item title="Description"><%= @forum.desc %></:item>
+  <:item title="Category"><%= @forum.category %></:item>
+  <:item title="Members"><%= Kernel.length(@forum.members) %></:item>
+</.list>
+
+<.back navigate={~p"/forums"}>Back to forums</.back>
+
+<.modal :if={@live_action == :edit} id="forum-modal" show on_cancel={JS.patch(~p"/forums/#{@forum}")}>
+  <.live_component
+    module={FanCanWeb.ForumLive.FormComponent}
+    id={@forum.id}
+    title={@page_title}
+    user={@current_user}
+    action={@live_action}
+    forum={@forum}
+    patch={~p"/forums/#{@forum}"}
+  />
+</.modal>

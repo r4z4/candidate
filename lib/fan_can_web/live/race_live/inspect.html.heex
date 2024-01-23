@@ -1,0 +1,24 @@
+<.header>
+  Inspect The Race
+</.header>
+<img class="h-56 lg:h-60 w-5/9 object-cover" src={@image_path} alt="" />
+<.list>
+  <:item title="Candidates"><%= @race.candidates %></:item>
+  <:item title="Seat"><%= @race.seat %></:item>
+  <:item title="Elect Percentage"><%= @race.elect_percentage %></:item>
+  <:item title="District"><%= @race.district %></:item>
+  <:item title="Attachments"><%= @race.attachments %></:item>
+</.list>
+
+<.back navigate={~p"/races"}>Back to races</.back>
+
+<.modal :if={@live_action == :edit} id="race-modal" show on_cancel={JS.patch(~p"/races/#{@race}")}>
+  <.live_component
+    module={FanCanWeb.RaceLive.FormComponent}
+    id={@race.id}
+    title={@page_title}
+    action={@live_action}
+    race={@race}
+    patch={~p"/races/#{@race}"}
+  />
+</.modal>

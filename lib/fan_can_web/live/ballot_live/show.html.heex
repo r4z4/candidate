@@ -1,0 +1,28 @@
+<.header>
+  Ballot <%= @ballot.id %>
+  <:subtitle>This is a ballot record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/ballots/#{@ballot}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit ballot</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Races"><%= @ballot.races %></:item>
+  <:item title="Columns"><%= @ballot.columns %></:item>
+  <:item title="Attachment"><%= @ballot.attachment %></:item>
+</.list>
+
+<.back navigate={~p"/ballots"}>Back to ballots</.back>
+
+<.modal :if={@live_action == :edit} id="ballot-modal" show on_cancel={JS.patch(~p"/ballots/#{@ballot}")}>
+  <.live_component
+    module={FanCanWeb.BallotLive.FormComponent}
+    id={@ballot.id}
+    title={@page_title}
+    action={@live_action}
+    ballot={@ballot}
+    patch={~p"/ballots/#{@ballot}"}
+  />
+</.modal>

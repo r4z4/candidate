@@ -1,0 +1,93 @@
+<.header>
+  Listing Candidates
+  <:actions>
+    <.link patch={~p"/candidates/new"}>
+      <.button>New Candidate</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="contests"
+  rows={@loc_info}
+>
+  <:col :let={contest} label="Office"><%= contest["office"] %></:col>
+
+  <:col :let={contest} label="Candidates">
+    <ul>
+      <%= for item <- contest["candidates"] do %>
+        <li><%= item["candidateUrl"] %></li>
+      <%= end %>
+    </ul>
+  </:col>
+</.table>
+
+<.table
+  id="candidates"
+  rows={@streams.candidates}
+  row_click={fn {_id, candidate} -> JS.navigate(~p"/candidates/#{candidate}") end}
+>
+  <:col :let={{_id, candidate}} label="Prefix"><%= candidate.prefix %></:col>
+  <:col :let={{_id, candidate}} label="First name"><%= candidate.f_name %></:col>
+  <:col :let={{_id, candidate}} label="Last name"><%= candidate.l_name %></:col>
+  <:col :let={{_id, candidate}} label="Suffix"><%= candidate.suffix %></:col>
+  <:col :let={{_id, candidate}} label="Birth State"><%= candidate.birth_state %></:col>
+  <:col :let={{_id, candidate}} label="Education">
+    <ul>
+      <%= for item <- candidate.education do %>
+        <li><%= item %></li>
+      <%= end %>
+    </ul>
+  </:col>
+  <:col :let={{_id, candidate}} label="State"><%= candidate.state %></:col>
+  <:col :let={{_id, candidate}} label="District"><%= candidate.district %></:col>
+  <:col :let={{_id, candidate}} label="Type"><%= candidate.seat %></:col>
+  <:col :let={{_id, candidate}} label="Party"><%= candidate.party %></:col>
+  <:col :let={{_id, candidate}} label="CPVI"><%= candidate.cpvi %></:col>
+  <:col :let={{_id, candidate}} label="Incumbent Since"><%= candidate.incumbent_since %></:col>
+  <:col :let={{_id, candidate}} label="End Date"><%= candidate.end_date %></:col>
+  <:col :let={{_id, candidate}} label="DOB"><%= candidate.dob %></:col>
+  <:col :let={{_id, candidate}} label="Attachments"><%= candidate.attachments %></:col>
+  <:action :let={{_id, candidate}}>
+    <div class="sr-only">
+      <.link navigate={~p"/candidates/#{candidate}"}>Show</.link>
+    </div>
+    <.link :if={get_permissions(@current_user.role) |> edit?(:candidate)} patch={~p"/candidates/#{candidate}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, candidate}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: candidate.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<nav class="border-t border-gray-200">
+  <ul class="flex my-2">
+    <li class="">
+      <a class="px-2 py-2" href="#" phx-click="nav" phx-value-page="{@page_number + 1}">Previous</a>
+    </li>
+  <%= for idx <- Enum.to_list(1..@total_pages) do %>
+    <li class="">
+    <a class="px-2 py-2" href="#" phx-click="nav" phx-value-page="{idx}"><%= idx %> </a>
+    </li>
+  <% end %>
+    <li class="">
+      <a class="px-2 py-2" href="#" phx-click="nav" phx-value-page="{@page_number + 1}">Next</a>
+    </li>
+  </ul>
+</nav>
+
+<.modal :if={@live_action in [:new, :edit]} id="candidate-modal" show on_cancel={JS.patch(~p"/candidates")}>
+  <.live_component
+    module={FanCanWeb.CandidateLive.FormComponent}
+    id={@candidate.id || :new}
+    title={@page_title}
+    user={@current_user}
+    action={@live_action}
+    candidate={@candidate}
+    patch={~p"/candidates"}
+  />
+</.modal>

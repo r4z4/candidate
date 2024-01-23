@@ -1,0 +1,46 @@
+<div class="mx-auto max-w-2xl"> 
+<.header>
+  Listing States
+  <:actions>
+    <.link patch={~p"/states/new"}>
+      <.button>New State</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="states"
+  rows={@streams.states}
+  row_click={fn {_id, state} -> JS.navigate(~p"/states/#{state}") end}
+>
+  <:col :let={{_id, state}} label="Id"><%= state.id %></:col>
+  <:col :let={{_id, state}} label="Name"><%= state.name %></:col>
+  <:col :let={{_id, state}} label="Code"><%= state.code %></:col>
+  <:col :let={{_id, state}} label="Num districts"><%= state.num_districts %></:col>
+  <:action :let={{_id, state}}>
+    <div class="sr-only">
+      <.link navigate={~p"/states/#{state}"}>Show</.link>
+    </div>
+    <.link patch={~p"/states/#{state}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, state}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: state.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="state-modal" show on_cancel={JS.patch(~p"/states")}>
+  <.live_component
+    module={FanCanWeb.StateLive.FormComponent}
+    id={@state.id || :new}
+    title={@page_title}
+    action={@live_action}
+    state={@state}
+    patch={~p"/states"}
+  />
+</.modal>
+</div>

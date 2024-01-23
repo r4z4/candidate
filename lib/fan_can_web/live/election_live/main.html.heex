@@ -1,0 +1,36 @@
+<.header>
+  Listing Elections
+</.header>
+
+<.table
+  id="elections"
+  rows={@streams.elections}
+  row_click={fn {_id, election} -> JS.navigate(~p"/elections/#{election}") end}
+>
+  <:col :let={{_id, election}} label="Year"><%= election.year %></:col>
+  <:col :let={{_id, election}} label="State"><%= election.state %></:col>
+  <:col :let={{_id, election}} label="Desc"><%= election.desc %></:col>
+  <:col :let={{_id, election}} label="Ballot Link(s)">
+    <ul>
+      <%= for b <- election.ballots do %>
+        <li><Heroicons.LiveView.icon :if={b.submitted} name="shield-check" type="solid" class="inline h-5 w-5 text-green-500" /><.link navigate={~p"/elections/live/ballot/#{b.id}"}>Go To Ballot</.link></li>
+      <%= end %>
+    </ul>
+  </:col>
+  <:col :let={{_id, election}} label="Election Date"><%= election.election_date %></:col>
+  <:action :let={{id, election}}>
+    <.link patch={~p"/elections/#{election}/inspect"}>Inspect</.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:inspect]} id="election-modal" show on_cancel={JS.patch(~p"/elections/main")}>
+  <.live_component
+    module={FanCanWeb.ElectionLive.InspectComponent}
+    id={@election.id}
+    title={@page_title}
+    user={@current_user}
+    action={@live_action}
+    election={@election}
+    patch={~p"/elections/main"}
+  />
+</.modal>

@@ -1,0 +1,45 @@
+<.header>
+  Listing Forums
+  <:actions>
+    <.link patch={~p"/forums/new"}>
+      <.button>New Forum</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="forums"
+  rows={@streams.forums}
+  row_click={fn {_id, forum} -> JS.navigate(~p"/forums/#{forum}") end}
+>
+  <:col :let={{_id, forum}} label="Title"><%= forum.title %></:col>
+  <:col :let={{_id, forum}} label="Description"><%= forum.desc %></:col>
+  <:col :let={{_id, forum}} label="Category"><%= forum.category %></:col>
+  <:col :let={{_id, forum}} label="Members"><%= Kernel.length(forum.members) %></:col>
+  <:action :let={{_id, forum}}>
+    <div class="sr-only">
+      <.link navigate={~p"/forums/#{forum}"}>Show</.link>
+    </div>
+    <.link :if={get_permissions(@current_user.role) |> edit?(:forum)} patch={~p"/forums/#{forum}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, forum}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: forum.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="forum-modal" show on_cancel={JS.patch(~p"/forums")}>
+  <.live_component
+    module={FanCanWeb.ForumLive.FormComponent}
+    id={@forum.id || :new}
+    title={@page_title}
+    user={@current_user}
+    action={@live_action}
+    forum={@forum}
+    patch={~p"/forums"}
+  />
+</.modal>

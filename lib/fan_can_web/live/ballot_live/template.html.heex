@@ -1,0 +1,95 @@
+<div class="text-center w-min m-auto border-solid border-2 border-white rounded-lg p-2 mb-4">
+  <h6 class="text-white">Legend</h6>
+    <div class="flex text-white">
+      <!-- The top tooltip -->
+      <div class="">
+        <a href="#" class="group relative hover:text-zinc-500 duration-300">
+          <Heroicons.LiveView.icon name="magnifying-glass" type="outline" class="h-5 w-5 text-white-300 m-2" />  Inspect
+            <span
+              class="absolute hidden group-hover:flex -left-5 -top-2 -translate-y-full w-48 px-2 py-1 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+              Inspect this race further. Research the candidates and view their platforms.</span>
+        </a>
+      </div>
+      <div class="mx-2">
+        <a href="#" class="group relative hover:text-zinc-500 duration-300">
+          <Heroicons.LiveView.icon name="star" type="outline" class="h-5 w-5 text-yellow-300 m-2" />  Favorite
+            <span
+              class="absolute hidden group-hover:flex -left-5 -top-2 -translate-y-full w-48 px-2 py-1 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+              Mark this as one you will return to. This will make sure that it is noticeable on your dashboard.</span>
+        </a>
+      </div>
+      <div class="mx-2">
+        <a href="#" class="group relative hover:text-zinc-500 duration-300">
+          <Heroicons.LiveView.icon name="share" type="outline" class="h-5 w-5 text-white m-2" />  Share
+            <span
+              class="absolute hidden group-hover:flex -left-5 -top-2 -translate-y-full w-48 px-2 py-1 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+              For the races that you want to discuss with others. You can use these via shorthand in the chat and forum as well.</span>
+        </a>
+      </div>
+      <div class="mx-2">
+        <a href="#" class="group relative hover:text-zinc-500 duration-300">
+          <Heroicons.LiveView.icon name="bell" type="outline" class="h-5 w-5 text-yellow-300 m-2" />  Alert
+            <span
+              class="absolute hidden group-hover:flex -left-5 -top-2 -translate-y-full w-48 px-2 py-1 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+              Set a system alert for this particular race. Use this for when you have a need to return and finalize the ballot.</span>
+        </a>
+      </div>
+      <div class="mx-2">
+        <a href="#" class="group relative hover:text-zinc-500 duration-300">
+          <Heroicons.LiveView.icon name="bookmark" type="outline" class="h-5 w-5 text-orange-200 m-2" />  Bookmark
+            <span
+              class="absolute hidden group-hover:flex -left-5 -top-2 -translate-y-full w-48 px-2 py-1 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+              Mark this as one to return to at a later time. This will move it to the top of your current "To Watch" list.</span>
+        </a>
+      </div>
+      <div class="mx-2">
+        <a href="#" class="group relative hover:text-zinc-500 duration-300">
+          <Heroicons.LiveView.icon name="arrow-path-rounded-square" type="outline" class="h-5 w-5 text-orange-200 m-2" />  Reset Vote
+            <span
+              class="absolute hidden group-hover:flex -left-5 -top-2 -translate-y-full w-48 px-2 py-1 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+              Voting is taken seriously. We encourage thoughtful voting. For this, we ask users to actively request a reset once they have voted if they change their minds. Thank you for your compliance & patience :)</span>
+        </a>
+      </div>
+    </div>
+</div>
+
+<div :if={@ballot.submitted} class="text-center w-min m-auto border-solid border-2 border-white rounded-lg p-2 mb-4">
+  <h6 class="text-white">This Ballot Has Been Submitted</h6>
+</div>
+
+<div class="text-center w-3/5 m-auto border-solid border-2 border-white rounded-lg p-2">
+  <h6 class="text-white">Tips</h6>
+    <div class="flex text-white">
+      <p> You are allowed to have to candidates check, however can only submit for one (Yes, we are preparing for RCV). You will receive an error upon submission, however you can also set yourself a friendly alert </p>
+    </div>
+</div>
+
+<section class="h-screen w-8/9 bg-slate-800">
+  <.simple_form
+    for={@ballot_form}
+    id="ballot-form"
+    phx-submit="submit_ballot"
+  >
+    <h1 class="text-center font-bold text-2xl text-indigo-500">Ballot For <%= @desc %> </h1>
+    <h4 class="text-center text-white">Ballots for <%= List.first(@ballot_races).seat %></h4>
+    <div class="grid justify-center md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-5 my-10">
+      <!-- Card -->
+        <div :for={ballot_race <- @ballot_races} class="bg-slate-700 text-white rounded-lg border shadow-md max-w-xs md:max-w-none overflow-hidden">
+          <LegBallotEntry.display ballot_race={ballot_race} vote_list={@vote_list} race_holds={Enum.filter(@current_user_holds.race_holds, fn x -> x.hold_cat_id == ballot_race.id end)}/>
+          <!-- <BallotEntry.display ballot_race={ballot_race} vote_list={@vote_list}/> -->
+        </div>
+    </div>
+    <button :if={true} class="transform rounded-md m-auto bg-green-700 px-8 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-blue-600 focus:bg-blue-600 focus:outline-none sm:mx-2">CAST BALLOT</button>
+  </.simple_form>
+</section>
+
+<.modal :if={@live_action in [:new, :edit]} id="race-modal" show on_cancel={JS.patch(~p"/races")}>
+  <.live_component
+    module={FanCanWeb.RaceLive.FormComponent}
+    id={@race.id || :new}
+    title={@page_title}
+    action={@live_action}
+    race={@race}
+    patch={~p"/races"}
+  />
+</.modal>

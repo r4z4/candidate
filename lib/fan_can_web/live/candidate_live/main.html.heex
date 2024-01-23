@@ -1,0 +1,46 @@
+<.header class="text-center w-fit m-auto px-12 py-4 border-2 border-solid border-fuchsia-400">State & County Officials</.header>
+
+<div class="m-auto text-white">
+  <h4>Recent Nominations for @current_user.state Representatives</h4>
+    <ul>
+      <%= for item <- @nominations do %>
+        <li>
+          <div>
+            <%= item["description"] %>
+            <%= item["status"] %>
+          </div>
+        </li>
+      <%= end %>
+    </ul>
+</div>
+
+<.table
+  id="contests"
+  rows={@loc_info}
+>
+  <:col :let={contest} label="Office"><%= contest["office"] %></:col>
+
+  <:col :let={contest} label="Candidates">
+    <ul>
+      <%= for item <- contest["candidates"] do %>
+        <li><%= item["candidateUrl"] %></li>
+      <%= end %>
+    </ul>
+  </:col>
+</.table>
+
+  <.header class="w-fit m-auto px-12 py-4 border-2 border-solid border-amber-400 mt-12 text-center">Local Officials</.header>
+
+<CandidateSnapshot.display mayor={@mayor} />
+
+<.modal :if={@live_action == :edit} id="candidate-modal" show on_cancel={JS.patch(~p"/candidate/#{@candidate}")}>
+  <.live_component
+    module={FanCanWeb.CandidateLive.FormComponent}
+    id={@candidate.id}
+    title={@page_title}
+    user={@current_user}
+    action={@live_action}
+    candidate={@candidate}
+    patch={~p"/candidates/#{@candidate}"}
+  />
+</.modal>

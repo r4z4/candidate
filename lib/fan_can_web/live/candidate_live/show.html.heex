@@ -1,0 +1,50 @@
+<div class="max-w-2xl mx-auto"> 
+  <.header>
+    Candidate <%= @candidate.id %>
+    <:subtitle>This is a candidate record from your database.</:subtitle>
+    <:actions>
+      <.link patch={~p"/candidates/#{@candidate}/show/edit"} phx-click={JS.push_focus()}>
+        <.button>Edit candidate</.button>
+      </.link>
+    </:actions>
+  </.header>
+
+  <img class="h-32 w-32 mt-4 mx-auto border-solid border-2 border-sky-500 rounded-md" src={@image_path} />
+
+  <.list>
+    <:item title="Prefix"><%= @candidate.prefix %></:item>
+    <:item title="First name"><%= @candidate.f_name %></:item>
+    <:item title="Last name"><%= @candidate.l_name %></:item>
+    <:item title="Suffix"><%= @candidate.suffix %></:item>
+    <:item title="State"><%= @candidate.state %></:item>
+    <:item title="Birth State"><%= @candidate.birth_state %></:item>
+    <:item title="Education">
+      <ul>
+        <%= for item <- @candidate.education do %>
+          <li><%= item %></li>
+        <%= end %>
+      </ul>
+    </:item>
+    <:item title="District"><%= @candidate.district %></:item>
+    <:item title="Seat"><%= MapHelpers.atom_to_str(@candidate.seat) %></:item>
+    <:item title="Party"><%= @candidate.party %></:item>
+    <:item title="CPVI"><%= @candidate.cpvi %></:item>
+    <:item title="Incumbent Since"><%= @candidate.incumbent_since %></:item>
+    <:item title="DOB"><%= @candidate.dob %></:item>
+    <:item title="Attachments"><%= @candidate.attachments %></:item>
+  </.list>
+
+  <.back navigate={~p"/candidates/main"}>Back to candidates</.back>
+</div>
+
+  <.modal :if={@live_action == :edit} id="candidate-modal" show on_cancel={JS.patch(~p"/candidates/#{@candidate}")}>
+    <.live_component
+      module={FanCanWeb.CandidateLive.FormComponent}
+      id={@candidate.id}
+      title={@page_title}
+      user={@current_user}
+      action={@live_action}
+      candidate={@candidate}
+      patch={~p"/candidates/#{@candidate}"}
+    />
+  </.modal>

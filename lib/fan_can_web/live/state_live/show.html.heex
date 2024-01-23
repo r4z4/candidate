@@ -1,0 +1,29 @@
+<.header>
+  State <%= @state.id %>
+  <:subtitle>This is a state record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/states/#{@state}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit state</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Id"><%= @state.id %></:item>
+  <:item title="Name"><%= @state.name %></:item>
+  <:item title="Code"><%= @state.code %></:item>
+  <:item title="Num districts"><%= @state.num_districts %></:item>
+</.list>
+
+<.back navigate={~p"/states"}>Back to states</.back>
+
+<.modal :if={@live_action == :edit} id="state-modal" show on_cancel={JS.patch(~p"/states/#{@state}")}>
+  <.live_component
+    module={FanCanWeb.StateLive.FormComponent}
+    id={@state.id}
+    title={@page_title}
+    action={@live_action}
+    state={@state}
+    patch={~p"/states/#{@state}"}
+  />
+</.modal>
