@@ -19,7 +19,7 @@
       </a>
       <%= if @current_user do %>
         <a
-          href={"/holds/" <> @current_user.id}
+          href={"/users/holds"}
           class="rounded-lg bg-zinc-100 border-2 border-sky-800 px-2 py-1 text-black hover:bg-zinc-200/80"
         >
           <Heroicons.LiveView.icon name="cog-6-tooth" type="outline" class="inline h-4 w-4" /> Manage User Holds
@@ -52,7 +52,7 @@
     id="user-modal"
     >
   <:title>User Message Client</:title>
-  <p class="text-center text-white">Messages</p>
-  <FanCanWeb.Components.MailboxClient.display some_id={FanCan.Site.list_user_messages(@current_user.id)}/>
+  <p class="text-center text-white">Messages</p><.input phx-click="toggle_read" phx-value-id={@current_user.id} type="checkbox" value={false} name="show_read" label="Show Read Messages" />
+  <FanCanWeb.Components.MailboxClient.display messages={FanCan.Site.list_user_messages(@current_user.id)}/>
   </.modal>
 <% end %>

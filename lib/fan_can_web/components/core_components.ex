@@ -65,7 +65,7 @@ defmodule FanCanWeb.CoreComponents do
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
-              
+
               class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-slate-800 p-14 shadow-lg ring-1 transition border-solid border-2 border-white"
             >
               <div class="absolute top-6 right-5">
@@ -114,7 +114,7 @@ defmodule FanCanWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class={[
-        "fixed top-2 right-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
+        "fixed top-2 left-1/3 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
         @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
         @kind == :candidate && "bg-sky-50 text-sky-800 ring-sky-500 fill-sky-900",
         @kind == :forum && "bg-orange-50 text-orange-800 ring-orange-500 fill-orange-900",

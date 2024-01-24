@@ -4,7 +4,7 @@ defmodule FanCanWeb.ForumLive.Page do
   alias FanCan.Site
   alias FanCan.Site.Forum
   alias FanCanWeb.Components.{PageNav, CatStats}
-  
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -35,6 +35,25 @@ defmodule FanCanWeb.ForumLive.Page do
     shared_message = %{type: :thread, string: "Hey! User #{socket.assigns.current_user.id} shared your thread :)"}
     FanCanWeb.Endpoint.broadcast!("threads_" <> thread.creator, "new_message", shared_message)
     {:noreply, socket}
+  end
+
+  def handle_event("star_click", %{"id" => id}, socket) do
+    user_id = socket.assigns.current_user.id
+    # Rate limit clicks that toggle
+    case Hammer.check_rate("star_click:#{user_id}", 60_000, 10) do
+      {:allow, _count} ->
+        thread = Site.get_thread!(id)
+        # Update user holds and use those records vs. thread. Similar to LVT
+        # UserHolds.toggle_star(id)
+        Forum.update_thread(thread, %{shares: thread.shares + 1})
+        # Add pubsub msg ONLY if adding. Only share good news.
+        starred_message = %{type: :thread, string: "Hey! User #{socket.assigns.current_user.id} has this as a favorite :)"}
+        FanCanWeb.Endpoint.broadcast!("threads_" <> thread.creator, "new_message", starred_message)
+        {:noreply, socket}
+      {:deny, _limit} ->
+        {:noreply, socket}
+    end
+
   end
 
   defp page_title(:page), do: "Show Forum"

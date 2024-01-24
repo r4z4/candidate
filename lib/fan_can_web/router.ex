@@ -91,13 +91,16 @@ defmodule FanCanWeb.Router do
 
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+      live "/users/holds", UserHoldsLive, :edit
 
       live "/home", HomeLive
-
 
       live "/elections/main", ElectionLive.Main, :index
       live "/elections/main/:id", ElectionLive.Page
       live "/elections/live/ballot/:id", BallotLive.Template, :template
+
+      # Non-Admin Version
+      live "/elections/:id", ElectionLive.Show, :show
 
       live "/states", StateLive.Index, :index
       live "/states/new", StateLive.Index, :new
@@ -123,6 +126,7 @@ defmodule FanCanWeb.Router do
       live "/candidates/:id", CandidateLive.Show, :show
       live "/candidates/:id/show/edit", CandidateLive.Show, :edit
 
+      ## FIXME
       live "/candidates/:page_number", CandidateLive.Index, :nav
 
       # Keep a Ballot index for admin etc.. Users will not see it though.

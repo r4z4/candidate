@@ -53,6 +53,7 @@ defmodule FanCan.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
+      {:hammer, "~> 6.1"},
       {:uuidv7, "~> 0.2"},
       {:ex_heroicons, "~> 2.0.0"},
       {:google_api_civic_info, "~> 0.20.0"},

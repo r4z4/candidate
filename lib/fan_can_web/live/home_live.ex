@@ -4,11 +4,11 @@ defmodule FanCanWeb.HomeLive do
 
   alias FanCan.Accounts
   alias FanCan.Core.TopicHelpers
-  alias FanCan.Accounts.UserHolds
   alias FanCan.Public.Election
   alias FanCanWeb.Components.StateSnapshot
   alias FanCanWeb.Components.PresenceDisplay
-  alias FanCan.Core.{Utils, Holds}
+  alias FanCan.Core.Utils
+  alias FanCan.Site
 
 #   def mount(%{"token" => token}, _session, socket) do
 #     socket =
@@ -23,7 +23,8 @@ defmodule FanCanWeb.HomeLive do
 #     {:ok, push_navigate(socket, to: ~p"/users/settings")}
 #   end
 
-  def mount(_params, session, socket) do
+  @impl true
+  def mount(_params, _session, socket) do
     # Send to ETS table vs storing in socket
     # g_candidates = api_query(socket.assigns.current_user.state)
     task =
@@ -60,7 +61,7 @@ defmodule FanCanWeb.HomeLive do
     floor_task =
       Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
         IO.puts("Hey from a task")
-        floor_actions = floor_query("house")
+        _floor_actions = floor_query("house")
       end)
 
     {:ok,
@@ -71,7 +72,7 @@ defmodule FanCanWeb.HomeLive do
      |> assign(:social_count, 0)}
   end
   # this is the order returned from the query in accounts.ex
-  defp sub_and_add(hold_cat, socket) do
+  defp sub_and_add(hold_cat, _socket) do
     case Kernel.elem(hold_cat, 0) do
       :candidate_holds -> TopicHelpers.subscribe_to_holds("candidate", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
       :election_holds -> TopicHelpers.subscribe_to_holds("election", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
@@ -100,7 +101,7 @@ defmodule FanCanWeb.HomeLive do
 
   defp get_favorites(holds) do
     # IO.inspect(holds, label: "holds")
-    all_holds = holds.candidate_holds ++ holds.user_holds ++ holds.election_holds ++ holds.race_holds ++ holds.post_holds ++ holds.thread_holds
+    _all_holds = holds.candidate_holds ++ holds.user_holds ++ holds.election_holds ++ holds.race_holds ++ holds.post_holds ++ holds.thread_holds
     |> Enum.filter(fn x -> x.type == :favorite end)
   end
 
@@ -180,11 +181,11 @@ defmodule FanCanWeb.HomeLive do
 
           <div class="text-center m-auto border-solid border-2 border-white rounded-lg p-2">
             <div class="text-white inline"><Heroicons.LiveView.icon name="star" type="outline" class="inline h-5 w-5 text-white m-2" />
-              Your Shred Items
+              Your Shared Items
             </div>
             <div class="text-white">
               <div :for={election <- get_elections(@current_user_holds)} class="">
-                <.link href={~p"/races/#{election.id}"}><p><%= election.desc %></p></.link>
+                <.link href={~p"/elections/#{election.id}"}><p><%= election.desc %></p></.link>
               </div>
             </div>
           </div>
@@ -211,33 +212,96 @@ defmodule FanCanWeb.HomeLive do
 
   def handle_event("send_message", %{"message" => %{"text" => text, "subject" => subject, "to" => to, "patch" => patch}}, socket) do
     Logger.info("Params are #{text} and #{subject} and to is #{to}", ansi_color: :blue_background)
-    case attrs = %{id: UUIDv7.generate(), to: to, from: socket.assigns.current_user.id, subject: subject, type: :p2p, text: text} |> FanCan.Site.create_message() do
-      {:ok, _} ->
-        notif = "Your message has been sent!"
-        recv = %{type: :p2p, string: "New Message Received"}
-        FanCanWeb.Endpoint.broadcast!("user_" <> to, "new_message", recv)
-        {:noreply,
-          socket
-          |> put_flash(:info, notif)
-          |> push_navigate(to: patch)}
-      {:error, changeset} ->
-        Logger.info("Send Message Erroer", ansi_color: :yellow)
-        notif = "Error Sending Message."
+    user_id = socket.assigns.current_user.id
+    # 10 per minute
+    case Hammer.check_rate("send_message:#{user_id}", 60_000, 10) do
+      {:allow, _count} ->
+        case attrs = %{id: UUIDv7.generate(), to: to, from: socket.assigns.current_user.id, subject: subject, type: :p2p, text: text} |> FanCan.Site.create_message() do
+          {:ok, _} ->
+            notif = "Your message has been sent!"
+            recv = %{type: :p2p, string: "New Message Received"}
+            FanCanWeb.Endpoint.broadcast!("user_" <> to, "new_message", recv)
+            {:noreply,
+              socket
+              |> put_flash(:info, notif)
+              |> push_navigate(to: patch)}
+          {:error, changeset} ->
+            Logger.error("Send Message Error: #{changeset.errors}", ansi_color: :yellow)
+            notif = "Error Sending Message."
+            {:noreply,
+              socket
+              |> put_flash(:error, notif)}
+        end
+      {:deny, _limit} ->
+        notif = "You are sending too many messages."
         {:noreply,
           socket
           |> put_flash(:error, notif)}
     end
   end
 
-  # def get_loc_info(ip) do
-  #   {:ok, resp} =
-  #   #   Finch.build(:get, "https://ip.city/api.php?ip=#{ip}&key=#{System.fetch_env!("IP_CITY_API_KEY")}")
-  #   #   |> Finch.request(FanCan.Finch)
-  #       Finch.build(:get, "https://ipinfo.io/#{ip}?token=#{System.fetch_env!("IP_INFO_TOKEN")}")
-  #       |> Finch.request(FanCan.Finch)
-  #   IO.inspect(resp, label: "Loc Info Resp")
-  #   resp
-  # end
+  @impl true
+  def handle_event("update_email", params, socket) do
+    %{"current_password" => password, "user" => user_params} = params
+    user = socket.assigns.current_user
+
+    case Accounts.apply_user_email(user, password, user_params) do
+      {:ok, applied_user} ->
+        Accounts.deliver_user_update_email_instructions(
+          applied_user,
+          user.email,
+          &url(~p"/users/settings/confirm_email/#{&1}")
+        )
+
+        info = "A link to confirm your email change has been sent to the new address."
+        {:noreply, socket |> put_flash(:info, info) |> assign(email_form_current_password: nil)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :email_form, to_form(Map.put(changeset, :action, :insert)))}
+    end
+  end
+
+  @impl true
+  def handle_event("mark_read", %{"id" => id}, socket) do
+    IO.puts("Mark Read")
+    message = Site.get_message!(id)
+    if !message.read do
+      Site.update_message(message, %{read: true})
+    end
+    {:noreply, socket}
+  end
+
+  # Why am I not able to use phx-value-read in this case?
+  @impl true
+  def handle_event("mark_read", %{"id" => id, "read" => read}, socket) do
+    IO.puts("Mark Read w/ Read")
+    if !read do
+      message = Site.get_message!(id)
+      Site.update_message(message, %{read: true})
+    end
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_read", %{"id" => id}, socket) do
+    IO.puts("Toggle Read")
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(%{event: "new_message", payload: new_message}, socket) do
+    case new_message.type do
+      :p2p -> Logger.info("In this case we need to refetch all unread messages from DB and display that number", ansi_color: :magenta_background)
+      :candidate -> Logger.info("Candidate New Message", ansi_color: :yellow)
+      :post -> Logger.info("Post New Message", ansi_color: :yellow)
+      :thread -> Logger.info("Thread New Message", ansi_color: :yellow)
+    end
+
+    {:noreply,
+     socket
+     |> assign(:messages, FanCan.Site.list_user_messages(socket.assigns.current_user.id))
+     |> put_flash(:info, "PubSub: #{new_message.string}")}
+  end
 
   @impl true
   def handle_info(
@@ -249,6 +313,16 @@ defmodule FanCanWeb.HomeLive do
 
     {:noreply, assign(socket, :social_count, social_count)}
   end
+
+  # def get_loc_info(ip) do
+  #   {:ok, resp} =
+  #   #   Finch.build(:get, "https://ip.city/api.php?ip=#{ip}&key=#{System.fetch_env!("IP_CITY_API_KEY")}")
+  #   #   |> Finch.request(FanCan.Finch)
+  #       Finch.build(:get, "https://ipinfo.io/#{ip}?token=#{System.fetch_env!("IP_INFO_TOKEN")}")
+  #       |> Finch.request(FanCan.Finch)
+  #   IO.inspect(resp, label: "Loc Info Resp")
+  #   resp
+  # end
 
   def get_str(state) do
     Enum.zip(Utils.states, Utils.state_names ++ Utils.territories)
@@ -294,42 +368,6 @@ defmodule FanCanWeb.HomeLive do
     {:ok, body} = Jason.decode(resp.body)
 
     body["results"]
-  end
-
-  @impl true
-  def handle_event("update_email", params, socket) do
-    %{"current_password" => password, "user" => user_params} = params
-    user = socket.assigns.current_user
-
-    case Accounts.apply_user_email(user, password, user_params) do
-      {:ok, applied_user} ->
-        Accounts.deliver_user_update_email_instructions(
-          applied_user,
-          user.email,
-          &url(~p"/users/settings/confirm_email/#{&1}")
-        )
-
-        info = "A link to confirm your email change has been sent to the new address."
-        {:noreply, socket |> put_flash(:info, info) |> assign(email_form_current_password: nil)}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, :email_form, to_form(Map.put(changeset, :action, :insert)))}
-    end
-  end
-
-  @impl true
-  def handle_info(%{event: "new_message", payload: new_message}, socket) do
-    case new_message.type do
-      :p2p -> Logger.info("In this case we need to refetch all unread messages from DB and display that number", ansi_color: :magenta_background)
-      :candidate -> Logger.info("Cndidate New Message", ansi_color: :yellow)
-      :post -> Logger.info("Post New Message", ansi_color: :yellow)
-      :thread -> Logger.info("Thread New Message", ansi_color: :yellow)
-    end
-
-    {:noreply,
-     socket
-     |> assign(:messages, FanCan.Site.list_user_messages(socket.assigns.current_user.id))
-     |> put_flash(:info, "PubSub: #{new_message.string}")}
   end
 
   # def handle_event("new_message", params, socket) do

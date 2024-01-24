@@ -7,7 +7,7 @@ defmodule FanCanWeb.ForumLive.Main do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, 
+    {:ok,
       socket
       |> stream(:forums, Site.list_forums())
       |> assign(:social_count, 0)}
@@ -51,8 +51,8 @@ defmodule FanCanWeb.ForumLive.Main do
       "Issues" -> "information-circle"
     end
   end
-  
-  @impl true 
+
+  @impl true
   def handle_info(
       %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
       %{assigns: %{social_count: count}} = socket
@@ -68,29 +68,12 @@ defmodule FanCanWeb.ForumLive.Main do
     {:noreply, stream_insert(socket, :forums, forum)}
   end
 
-  def handle_event("send_message", %{"message" => %{"text" => text, "subject" => subject, "to" => to}}, socket) do
-    Logger.info("Params are #{text} and #{subject} and to is #{to}", ansi_color: :blue_background)
-    case attrs = %{id: UUIDv7.generate(), to: to, from: socket.assigns.current_user.id, subject: subject, type: :p2p, text: text, read: false} |> FanCan.Site.create_message() do
-      {:ok, _} -> 
-        info = "Your message has been sent to USERNAME"
-        {:noreply,
-          socket
-          |> put_flash(:info, info)}
-      {:error, changeset} -> 
-        Logger.info("Send Message Erroer", ansi_color: :yellow)
-        error = "Error Sending Message."
-        {:noreply,
-          socket
-          |> put_flash(:error, error)}
-    end
-  end
-
   @impl true
   def handle_info(%{event: "new_message", payload: new_message}, socket) do
     updated_messages = socket.assigns[:messages] ++ [new_message]
     case new_message.type do
       :p2p -> Logger.info("In this case we need to refetch all unread messages from DB and display that number", ansi_color: :magenta_background)
-      :candidate -> Logger.info("Cndidate New Message", ansi_color: :yellow)
+      :candidate -> Logger.info("Candidate New Message", ansi_color: :yellow)
       :post -> Logger.info("Post New Message", ansi_color: :yellow)
       :thread -> Logger.info("Thread New Message", ansi_color: :yellow)
     end
@@ -99,6 +82,34 @@ defmodule FanCanWeb.ForumLive.Main do
      socket
      |> assign(:messages, updated_messages)
      |> put_flash(:info, "PubSub: #{new_message.string}")}
+  end
+
+  def handle_event("send_message", %{"message" => %{"text" => text, "subject" => subject, "to" => to}}, socket) do
+    Logger.info("Params are #{text} and #{subject} and to is #{to}", ansi_color: :blue_background)
+    user_id = socket.assigns.current_user.id
+    # 10 per minute
+    case Hammer.check_rate("send_forum_message:#{user_id}", 60_000, 10) do
+      {:allow, _count} ->
+        case attrs = %{id: UUIDv7.generate(), to: to, from: socket.assigns.current_user.id, subject: subject, type: :p2p, text: text, read: false} |> FanCan.Site.create_message() do
+          {:ok, _} ->
+            info = "Your message has been sent to USERNAME"
+            {:noreply,
+              socket
+              |> put_flash(:info, info)}
+          {:error, changeset} ->
+            Logger.error("Send Message Error -> #{changeset.errors}", ansi_color: :yellow)
+            notif = "Error Sending Message."
+            {:noreply,
+              socket
+              |> put_flash(:error, notif)}
+        end
+      {:deny, _limit} ->
+        error = "You are sending too many messages."
+        {:noreply,
+          socket
+          |> put_flash(:error, error)}
+    end
+
   end
 
   @impl true
