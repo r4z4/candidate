@@ -355,11 +355,24 @@ defmodule FanCanWeb.HomeLive do
       %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
       %{assigns: %{social_count: count}} = socket
     ) do
-    IO.inspect(count, label: "Count")
+    IO.inspect(count, label: "Count in Home Live")
+    IO.inspect(joins, label: "Joins")
+    IO.inspect(leaves, label: "Leaves")
     social_count = count + map_size(joins) - map_size(leaves)
 
     {:noreply, assign(socket, :social_count, social_count)}
   end
+
+  @impl true
+  def handle_info(
+      %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
+      %{assigns: %{social_count: count}} = socket
+    ) when leaves == %{} do
+
+    {:noreply, socket}
+  end
+
+
 
   # def get_loc_info(ip) do
   #   {:ok, resp} =

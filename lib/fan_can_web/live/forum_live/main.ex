@@ -57,7 +57,7 @@ defmodule FanCanWeb.ForumLive.Main do
       %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
       %{assigns: %{social_count: count}} = socket
     ) do
-    IO.inspect(count, label: "Count")
+    IO.inspect(count, label: "Count in Forum")
     social_count = count + map_size(joins) - map_size(leaves)
 
     {:noreply, assign(socket, :social_count, social_count)}

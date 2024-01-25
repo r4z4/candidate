@@ -6,22 +6,51 @@ defmodule FanCanWeb.UserHoldsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-2xl">
+    <div class="mx-auto max-w-2xl text-zinc-200">
     <.header class="text-center">
       User Hold
       <:subtitle>Manage your user holds</:subtitle>
     </.header>
 
-    <ul :for={{hold_type_atom, holds_list} <- @holds} class="list-decimal">
-      <li>
-        <p>Hold Type: <%= to_string(hold_type_atom) %></p>
-        <ul :for={hold <- holds_list} class="list-disc">
-          <li>Type: <%= hold.type %></li>
-        </ul>
-      </li>
-    </ul>
+    <div :for={item <- @holds} class="list-decimal">
+      <div>
+        <p class="text-center"><%= Kernel.elem(item, 0) %></p>
+        <div class="my-4">
+          <div :for={hold <- Kernel.elem(item, 1)} class="list-disc ml-4">
+            <p><span class={cat_class(hold.hold_cat)}><%= hold.hold_cat %></span>::<span class={type_class(hold.type)}><%= hold.type %></span> |> <%= hold.hold_cat_id %></p>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
     """
+  end
+
+  def cat_class(cat) do
+    case cat do
+      :candidate -> "text-green-700"
+      :user -> "text-sky-700"
+      :election -> "text-red-700"
+      :forum -> "text-amber-700"
+      :thread -> "text-purple-700"
+      :post -> "text-orange-700"
+      :race -> "text-fuchsia-700"
+    end
+  end
+
+  def type_class(type) do
+    case type do
+      :follow -> "text-indigo-300"
+      :star -> "text-cyan-300"
+      :bookmark -> "text-lime-300"
+      :alert -> "text-emerald-300"
+      :vote -> "text-teal-300"
+      :like -> "text-violet-300"
+      :share -> "text-blue-300"
+      :upvote -> "text-rose-300"
+      :downvote -> "text-slate-300"
+      :favorite -> "text-pink-300"
+    end
   end
 
   @impl true
@@ -46,7 +75,7 @@ defmodule FanCanWeb.UserHoldsLive do
     user = socket.assigns.current_user
     user_token = session["user_token"]
     holds = Accounts.get_all_holds_by_token(user_token)
-
+    # IO.inspect(holds, label: "Ugh Holds")
     socket =
       socket
       |> assign(:holds, holds)
