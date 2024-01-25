@@ -4,7 +4,9 @@ services:
   db:
     hostname: db
     container_name: db-fan_can
-    image: ankane/pgvector:latest
+    # Need postgres:latest for gh_workflows
+    # image: ankane/pgvector:latest
+    image: postgres:latest
     user: postgres
     environment:
       POSTGRES_USER: postgres
@@ -13,6 +15,7 @@ services:
     ports:
       - "5432:5432"
     restart: "no"
+    command: ["postgres", "-c", "log_statement=all", "-c", "log_filename=postgresql-%a.log", "-c", "log_rotation_age=1d", "-c", "log_truncate_on_rotation=on", "-c", "log_min_duration_statement=0", "-c", "logging_collector=on", "-c", "log_directory=log"]
     volumes:
       - pgdata:/var/lib/postgresql/data
 volumes:
