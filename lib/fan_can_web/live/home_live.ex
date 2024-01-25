@@ -9,6 +9,7 @@ defmodule FanCanWeb.HomeLive do
   alias FanCanWeb.Components.PresenceDisplay
   alias FanCan.Core.Utils
   alias FanCan.Site
+  alias FanCanWeb.Components.MailboxCard
 
 #   def mount(%{"token" => token}, _session, socket) do
 #     socket =
@@ -25,13 +26,39 @@ defmodule FanCanWeb.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    user_id = socket.assigns.current_user.id
     # Send to ETS table vs storing in socket
     # g_candidates = api_query(socket.assigns.current_user.state)
-    task =
-      Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
-        IO.puts("Hey from a task")
-        api_query(socket.assigns.current_user.state)
-      end)
+    {atom, value} = Cachex.get(:main_cache, "g_candidates_result_#{user_id}")
+    g_candidates_result =
+      case {atom, value} do
+        {:ok, value} ->
+          if value do
+            value
+          else
+            g_task =
+              Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
+                IO.puts("Hey from a task")
+                api_query(socket.assigns.current_user.state)
+              end)
+            g_task_result = Task.await(g_task, 10000)
+            Cachex.put!(:main_cache, "g_candidates_result_#{user_id}", g_task_result)
+            g_task_result
+          end
+        {:error, _value} ->
+          # Send back blank object for now
+          %{
+            "chamber" => "Error",
+            "congress" => "9999",
+            "date" => "1900-01-01",
+            "floor_actions" => [],
+            "num_results" => 0,
+            "offset" => 0
+          }
+        _ ->
+          %{error: "Unexpected Error"}
+      end
+
     Logger.info("Home Socket = #{inspect socket}", ansi_color: :magenta)
     # IO.inspect(self(), label: "Self")
     # IO.inspect(socket, label: "Home Socket")
@@ -58,31 +85,50 @@ defmodule FanCanWeb.HomeLive do
     # send pid, {:subscribe_user_published, socket.assigns.current_user_published_ids}
     # # ThinWrapper.put("game_data", game_data)
     # # game_data = ThinWrapper.get("game_data")
-    floor_task =
-      Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
-        IO.puts("Hey from a task")
-        _floor_actions = floor_query("house")
-      end)
+
+    {atom, value} = Cachex.get(:main_cache, "floor_task_result_#{user_id}")
+    floor_result =
+      case {atom, value} do
+        {:ok, value} ->
+          if value do
+            value
+          else
+            floor_task =
+              Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
+                IO.puts("Hey from a task")
+                _floor_actions = floor_query("house")
+              end)
+            floor_result = Task.await(floor_task, 10000)
+            Cachex.put!(:main_cache, "floor_task_result_#{user_id}", floor_result)
+            floor_result
+          end
+        {:error, _value} ->
+          # Send back blank object for now
+          %{
+            "chamber" => "Error",
+            "congress" => "9999",
+            "date" => "1900-01-01",
+            "floor_actions" => [],
+            "num_results" => 0,
+            "offset" => 0
+          }
+        _ ->
+          %{error: "Unexpected Error"}
+      end
 
     {:ok,
      socket
      |> assign(:messages, [])
-     |> assign(:g_candidates, Task.await(task, 10000))
-     |> assign(:floor_actions, Task.await(floor_task, 10000))
+     |> assign(:g_candidates, g_candidates_result)
+     # |> assign(:floor_actions, Task.await(floor_task, 10000))
+     |> assign(:floor_actions, floor_result)
+     |> assign(:message_count, Kernel.length(FanCan.Site.list_user_messages(user_id)))
      |> assign(:social_count, 0)}
   end
   # this is the order returned from the query in accounts.ex
   defp sub_and_add(hold_cat, _socket) do
-    case Kernel.elem(hold_cat, 0) do
-      :candidate_holds -> TopicHelpers.subscribe_to_holds("candidate", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
-      :election_holds -> TopicHelpers.subscribe_to_holds("election", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
-      :race_holds -> TopicHelpers.subscribe_to_holds("race", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
-      :user_holds -> TopicHelpers.subscribe_to_holds("user", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
-      :thread_holds -> TopicHelpers.subscribe_to_holds("thread", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
-      :post_holds -> TopicHelpers.subscribe_to_holds("post", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
-    # TopicHelpers.subscribe_to_holds("forum", holds["forum_ids"])
-    # TopicHelpers.subscribe_to_holds("election", holds["election_ids"])
-    end
+    TopicHelpers.subscribe_to_holds(Kernel.elem(hold_cat, 0), Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
+    # :forum_holds -> TopicHelpers.subscribe_to_holds("forum", Kernel.elem(hold_cat, 1) |> Enum.map(fn h -> h.id end))
   end
 
   defp get_races(holds) do
@@ -109,6 +155,7 @@ defmodule FanCanWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <div>
+    <.live_component module={MailboxCard} message_count={@message_count} user_id={@current_user.id} id="mailbox_card" />
     <.live_component module={PresenceDisplay} social_count={@social_count} user_follow_holds={@current_user_holds.user_holds} user_id={@current_user.id} username={@current_user.username} room="Lobby" id="presence_display" />
       <.header class="text-center">
         Hello <%= assigns.current_user.username %> || Welcome to Fantasy Candidate
@@ -283,7 +330,7 @@ defmodule FanCanWeb.HomeLive do
   end
 
   @impl true
-  def handle_event("toggle_read", %{"id" => id}, socket) do
+  def handle_event("toggle_read", %{"id" => _id}, socket) do
     IO.puts("Toggle Read")
     {:noreply, socket}
   end
@@ -326,7 +373,7 @@ defmodule FanCanWeb.HomeLive do
 
   def get_str(state) do
     Enum.zip(Utils.states, Utils.state_names ++ Utils.territories)
-      |> Enum.find(fn {abbr,name} -> abbr == state end)
+      |> Enum.find(fn {abbr, _name} -> abbr == state end)
       |> Kernel.elem(1)
       |> Atom.to_string()
   end

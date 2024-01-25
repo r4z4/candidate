@@ -43,7 +43,7 @@ defmodule FanCan.Core.Utils do
         [:image, :pdf]
     end
 
-    # Holds = Things you can only have one of
+    # Hold = Things you can only have one of
     # Event = Can have many
 
     def hold_types do

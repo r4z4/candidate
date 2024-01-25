@@ -23,7 +23,7 @@ defmodule FanCan.Public.Election do
   end
 
   alias FanCan.Public.{Election, Candidate, Legislator}
-  alias FanCan.Core.Holds
+  alias FanCan.Core.Hold
   alias FanCan.Accounts.{UserHolds, User, UserToken}
   alias FanCan.Public.Election.{RaceHolds, Ballot, Race, ElectionHolds, CandidateHolds}
   import Ecto.Query, warn: false
@@ -330,13 +330,13 @@ defmodule FanCan.Public.Election do
     # For now this'll always just be a post. might not always be though
     case Map.fetch(attrs, :type) do
       {:ok, :upvote} ->
-        %Holds{}
-          |> Holds.changeset(attrs)
+        %Hold{}
+          |> Hold.changeset(attrs)
           |> Repo.insert(returning: true)
 
       {:ok, :downvote} ->
-        %Holds{}
-          |> Holds.changeset(attrs)
+        %Hold{}
+          |> Hold.changeset(attrs)
           |> Repo.insert(returning: true)
 
       _ -> IO.puts("No Match for Upvote Downvote")
@@ -346,18 +346,18 @@ defmodule FanCan.Public.Election do
   def register_alert(attrs) do
     case Map.fetch(attrs, :hold_cat) do
       {:ok, :race} ->
-        %Holds{}
-          |> Holds.changeset(attrs)
+        %Hold{}
+          |> Hold.changeset(attrs)
           |> Repo.insert(returning: true)
 
       {:ok, :election} ->
-        %Holds{}
-          |> Holds.changeset(attrs)
+        %Hold{}
+          |> Hold.changeset(attrs)
           |> Repo.insert(returning: true)
 
       {:ok,:user} ->
-        %Holds{}
-        |> Holds.changeset(attrs)
+        %Hold{}
+        |> Hold.changeset(attrs)
         |> Repo.insert(returning: true)
 
       _ -> IO.puts("Ooooooooooooooops")
@@ -367,18 +367,18 @@ defmodule FanCan.Public.Election do
   def register_bookmark(attrs) do
     case Map.fetch(attrs, :hold_cat) do
       {:ok, :race} ->
-        %Holds{}
-          |> Holds.changeset(attrs)
+        %Hold{}
+          |> Hold.changeset(attrs)
           |> Repo.insert(returning: true)
 
       {:ok, :election} ->
-        %Holds{}
-          |> Holds.changeset(attrs)
+        %Hold{}
+          |> Hold.changeset(attrs)
           |> Repo.insert(returning: true)
       # Can you bookmark a user? Probably not
       {:ok, :user} ->
-        %Holds{}
-        |> Holds.changeset(attrs)
+        %Hold{}
+        |> Hold.changeset(attrs)
         |> Repo.insert(returning: true)
 
       _ -> IO.puts("Bookmark Ooooooooooooooops")
@@ -388,18 +388,18 @@ defmodule FanCan.Public.Election do
   def register_hold(attrs) do
     case Map.fetch(attrs, :hold_cat) do
       {:ok, _} ->
-        %Holds{}
-          |> Holds.changeset(attrs)
+        %Hold{}
+          |> Hold.changeset(attrs)
           |> Repo.insert(returning: true)
 
-      _ -> IO.puts("No Match on Register Holds")
+      _ -> IO.puts("No Match on Register Hold")
     end
   end
 
   def register_vote(attrs) do
     # If hold exists, flip to active. Else, create new.
     query =
-      from h in Holds,
+      from h in Hold,
       where: h.hold_cat_id == ^attrs.hold_cat_id,
       where: h.hold_cat == ^attrs.hold_cat,
       where: h.type == ^attrs.type,
@@ -411,8 +411,8 @@ defmodule FanCan.Public.Election do
     else
       case Map.fetch(attrs, :hold_cat) do
         {:ok, :candidate} ->
-          %Holds{}
-            |> Holds.changeset(attrs)
+          %Hold{}
+            |> Hold.changeset(attrs)
             |> Repo.insert(returning: true)
 
         _ -> IO.puts("Ooooooooooooooops")
@@ -432,7 +432,7 @@ defmodule FanCan.Public.Election do
 
   # Have it take a list now to handle multiple unregisters (clearing)
   def unregister_votes(id_list, cat) do
-    from(h in Holds, where: h.hold_cat_id in ^id_list, where: h.hold_cat == ^cat, where: h.type == :vote, select: h)
+    from(h in Hold, where: h.hold_cat_id in ^id_list, where: h.hold_cat == ^cat, where: h.type == :vote, select: h)
     |> FanCan.Repo.update_all(set: [active: false])
   end
 

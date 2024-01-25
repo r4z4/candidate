@@ -8,7 +8,7 @@ defmodule FanCanWeb.ThreadLive.Show do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, 
+    {:ok,
       socket
       |> assign(:post_upvote_ids, Enum.filter(socket.assigns.current_user_holds.post_holds, fn ph -> ph.type == :upvote end) |> Enum.map(fn ph -> ph.hold_cat_id end))
       |> assign(:post_downvote_ids, Enum.filter(socket.assigns.current_user_holds.post_holds, fn ph -> ph.type == :downvote end) |> Enum.map(fn ph -> ph.hold_cat_id end))}
@@ -42,7 +42,7 @@ defmodule FanCanWeb.ThreadLive.Show do
     FanCanWeb.Endpoint.broadcast!("posts_" <> post.author, "new_message", upvoted_message)
     attrs = %{id: Ecto.UUID.generate(), user_id: socket.assigns.current_user.id, type: :upvote, hold_cat: :post, hold_cat_id: id}
     case Election.register_hold(attrs) do
-      {:ok, holds} -> 
+      {:ok, holds} ->
         {:noreply,
           socket
           # Not reading from DB. Just adding straight to FE state. But it will be in DB.
@@ -50,7 +50,7 @@ defmodule FanCanWeb.ThreadLive.Show do
           |> put_flash(:info, "Upvoted: #{post.title}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, 
+        {:noreply,
           socket
           |> put_flash(:error, "Error upvoting #{post.title}")}
     end
@@ -61,15 +61,15 @@ defmodule FanCanWeb.ThreadLive.Show do
     attrs = %{id: Ecto.UUID.generate(), user_id: socket.assigns.current_user.id, type: :bookmark, hold_cat: :race, hold_cat_id: id}
       # FIXME: Move to RegisterHandlers
       case Election.register_hold(attrs) do
-        {:ok, holds} -> 
-          IO.inspect(holds, label: "Holds: ")
+        {:ok, holds} ->
+          IO.inspect(holds, label: "Hold: ")
           {:noreply,
             socket
             |> put_flash(:info, "Successfully bookmarked race: #{desc}")}
 
         {:error, %Ecto.Changeset{} = changeset} ->
-          IO.inspect(changeset, label: "Holds Error: ")
-          {:noreply, 
+          IO.inspect(changeset, label: "Hold Error: ")
+          {:noreply,
             socket
             |> put_flash(:error, "Error adding alert for #{desc}")}
       end
@@ -84,16 +84,16 @@ defmodule FanCanWeb.ThreadLive.Show do
     FanCanWeb.Endpoint.broadcast!("posts_" <> post.author, "new_message", downvoted_message)
     attrs = %{id: Ecto.UUID.generate(), user_id: socket.assigns.current_user.id, type: :downvote, hold_cat: :post, hold_cat_id: id}
     case Election.register_hold(attrs) do
-      {:ok, holds} -> 
-        IO.inspect(holds, label: "Holds: ")
+      {:ok, holds} ->
+        IO.inspect(holds, label: "Hold: ")
         {:noreply,
           socket
           |> assign(:post_downvote_ids, [id | socket.assigns.post_downvote_ids])
           |> put_flash(:info, "Downvoted: #{post.title}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset, label: "Holds Error: ")
-        {:noreply, 
+        IO.inspect(changeset, label: "Hold Error: ")
+        {:noreply,
           socket
           |> put_flash(:error, "Error downvoting #{post.title}")}
     end

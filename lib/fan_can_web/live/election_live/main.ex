@@ -4,7 +4,7 @@ defmodule FanCanWeb.ElectionLive.Main do
   alias FanCan.Public
   alias FanCan.Public.Legislator
   alias FanCan.Public.Election
-  alias FanCan.Core.{TopicHelpers, Holds, Constants}
+  alias FanCan.Core.{TopicHelpers, Hold, Constants}
   import FanCan.Accounts.Authorize, only: [get_permissions: 1, read?: 2, create?: 2, edit?: 2, delete?: 2]
 
   @impl true
@@ -17,20 +17,17 @@ defmodule FanCanWeb.ElectionLive.Main do
     Logger.info("GenServer Resp = #{inspect resp}", ansi_color: :magenta_background)
     test_message = %{type: :candidate, string: "test_message"}
     FanCanWeb.Endpoint.broadcast!("user_" <> socket.assigns.current_user.id, "new_message", test_message)
-    legislators = 
+    legislators =
       case socket.assigns.use_local_data do
         true -> Public.list_legislators(socket.assigns.current_user.state)
         false -> get_session_people(socket.assigns.legiscan_keys["session_id"], socket.assigns.current_user)
       end
     # IO.inspect(legislators, label: "legislators")
-    for follow = %Holds{} <- socket.assigns.current_user_holds do
+    for {key, value} <- socket.assigns.current_user_holds do
+      IO.inspect(key, label: "Type -- Key")
+      follow_ids = Enum.map(value, fn hold -> hold.hold_cat_id end)
       # Subscribe to user_holds. E.g. forums that user subscribes to
-      case follow.type do
-        :candidate -> TopicHelpers.subscribe_to_holds("candidate", follow.follow_ids)
-        :user -> TopicHelpers.subscribe_to_holds("user", follow.follow_ids)
-        :forum -> TopicHelpers.subscribe_to_holds("forum", follow.follow_ids)
-        :election -> TopicHelpers.subscribe_to_holds("election", follow.follow_ids)
-      end
+      TopicHelpers.subscribe_to_holds(key, follow_ids)
     end
 
     with %{post_ids: post_ids, thread_ids: thread_ids} <- socket.assigns.current_user_published_ids do
@@ -81,7 +78,7 @@ defmodule FanCanWeb.ElectionLive.Main do
     struct_list = to_structs(list)
     # Return it as a list of map-items
     case Public.create_legislators(struct_list) do
-      {id, legislators} -> 
+      {id, legislators} ->
         legislators = legislators
         create_ballot(election_id, user.id)
         create_ballot_races(legislators, election_id)
@@ -153,8 +150,8 @@ defmodule FanCanWeb.ElectionLive.Main do
     updated_messages = socket.assigns.messages ++ [new_message]
     IO.inspect(new_message, label: "New Message")
 
-    {:noreply, 
-     socket 
+    {:noreply,
+     socket
      |> assign(:messages, updated_messages)
      |> put_flash(:info, "PubSub: #{new_message.string}")}
   end
@@ -167,4 +164,3 @@ defmodule FanCanWeb.ElectionLive.Main do
     {:noreply, stream_delete(socket, :elections, election)}
   end
 end
-

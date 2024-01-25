@@ -8,7 +8,7 @@ defmodule FanCanWeb.UserHoldsLive do
     ~H"""
     <div class="mx-auto max-w-2xl">
     <.header class="text-center">
-      User Holds
+      User Hold
       <:subtitle>Manage your user holds</:subtitle>
     </.header>
 

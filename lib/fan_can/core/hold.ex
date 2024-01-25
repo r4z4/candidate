@@ -1,8 +1,9 @@
-defmodule FanCan.Core.Holds do
+defmodule FanCan.Core.Hold do
+  @behaviour Ecto.Type
   use Ecto.Schema
   import Ecto.Changeset
   alias FanCan.Core.Utils
-  
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "holds" do
@@ -16,10 +17,19 @@ defmodule FanCan.Core.Holds do
   end
 
   @doc false
-  def changeset(holds, attrs) do
-    holds
+  def changeset(hold, attrs) do
+    hold
     |> cast(attrs, [:id, :user_id, :type, :hold_cat_id, :hold_cat])
     |> validate_required([:id, :user_id, :type, :hold_cat_id, :hold_cat])
     |> unique_constraint(:id)
   end
+
+  @type t :: %__MODULE__{
+    __meta__: Ecto.Schema.Metadata.t(),
+    user_id: Ecto.UUID.t(),
+    hold_cat_id: Ecto.UUID.t(),
+    hold_cat: String.t(),
+    type: String.t(),
+    active: Boolean.t()
+  }
 end

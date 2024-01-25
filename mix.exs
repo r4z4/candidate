@@ -55,6 +55,7 @@ defmodule FanCan.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:hammer, "~> 6.1"},
       {:uuidv7, "~> 0.2"},
+      {:cachex, "~> 3.6"},
       {:ex_heroicons, "~> 2.0.0"},
       {:google_api_civic_info, "~> 0.20.0"},
       {:goth, "~> 1.2.0"},

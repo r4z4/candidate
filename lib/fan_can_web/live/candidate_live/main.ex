@@ -4,26 +4,23 @@ defmodule FanCanWeb.CandidateLive.Main do
   alias FanCan.Public
   alias FanCan.Public.Candidate
   alias FanCan.Accounts
-  alias FanCan.Core.{TopicHelpers, Holds}
+  alias FanCan.Core.{TopicHelpers, Hold}
   alias FanCanWeb.Components.CandidateSnapshot
 
   @impl true
   def mount(_params, _session, socket) do
+    dbg(socket.assigns.current_user_holds)
     # {email, username} = Accounts.get_user_data_by_token(session["user_token"])
     # %{entries: entries, page_number: page_number, page_size: page_size, total_entries: total_entries, total_pages: total_pages}
     FanCanWeb.Endpoint.subscribe("topic")
     mayor = Public.get_mayor(socket.assigns.current_user.city, socket.assigns.current_user.state)
     result = if connected?(socket), do: Public.paginate_candidates(), else: %Scrivener.Page{}
 
-    for follow = %Holds{} <- socket.assigns.current_user_holds do
-      IO.inspect(follow, label: "Type")
+    for {key, value} <- socket.assigns.current_user_holds do
+      IO.inspect(key, label: "Type -- Key")
+      follow_ids = Enum.map(value, fn hold -> hold.hold_cat_id end)
       # Subscribe to user_holds. E.g. forums that user subscribes to
-      case follow.type do
-        :candidate -> TopicHelpers.subscribe_to_holds("candidate", follow.follow_ids)
-        :user -> TopicHelpers.subscribe_to_holds("user", follow.follow_ids)
-        :forum -> TopicHelpers.subscribe_to_holds("forum", follow.follow_ids)
-        :election -> TopicHelpers.subscribe_to_holds("election", follow.follow_ids)
-      end
+      TopicHelpers.subscribe_to_holds(key, follow_ids)
     end
 
     with %{post_ids: post_ids, thread_ids: thread_ids} <- socket.assigns.current_user_published_ids do
@@ -53,6 +50,8 @@ defmodule FanCanWeb.CandidateLive.Main do
   end
 
   defp get_voter_info(user) do
+    # {:ok, value} = Cachex.get(:main_cache, "floor_task_result_#{user_id}")
+    # IO.inspect(value, label: "Val")
     IO.inspect(user, label: "User in Voter Info")
     {:ok, resp} =
       Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/voterinfo?address=12%20M%20#{user.city}%2C%20#{user.state}&electionId=2000&key=#{System.fetch_env!("GCLOUD_API_KEY")}")

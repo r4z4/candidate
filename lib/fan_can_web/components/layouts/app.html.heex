@@ -5,9 +5,6 @@
         <a href="/" class="hover:text-zinc-700">
           Main Site
         </a>
-        <%= if @current_user do %>
-          <FanCanWeb.Components.MailboxCard.display count={Kernel.length(FanCan.Site.list_user_messages(@current_user.id))} some_id={GenServer.call(@mailbox_pid, {:get, :some_id})}/>
-        <% end %>
       </p>
     </div>
     <div class="flex items-center gap-4 font-semibold leading-6 text-white">
@@ -22,7 +19,7 @@
           href={"/users/holds"}
           class="rounded-lg bg-zinc-100 border-2 border-sky-800 px-2 py-1 text-black hover:bg-zinc-200/80"
         >
-          <Heroicons.LiveView.icon name="cog-6-tooth" type="outline" class="inline h-4 w-4" /> Manage User Holds
+          <Heroicons.LiveView.icon name="cog-6-tooth" type="outline" class="inline h-4 w-4" /> Manage User Hold
         </a>
       <% end %>
       <a href="/elections/main" class="hover:text-zinc-700">

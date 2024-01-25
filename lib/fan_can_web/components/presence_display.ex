@@ -4,11 +4,11 @@ defmodule FanCanWeb.Components.PresenceDisplay do
   alias FanCan.Accounts
   alias FanCanWeb.Components.SendMessage
   alias FanCanWeb.CoreComponents
-  #{u.username, u.email, u.confirmed_at, us.easy_games_played, us.easy_games_finished, us.med_games_played, us.med_games_finished, us.hard_games_played, us.hard_games_finished, 
+  #{u.username, u.email, u.confirmed_at, us.easy_games_played, us.easy_games_finished, us.med_games_played, us.med_games_finished, us.hard_games_played, us.hard_games_finished,
   # us.easy_poss_pts, us.easy_earned_pts, us.med_poss_pts, us.med_earned_pts, us.hard_poss_pts, us.hard_earned_pts}
 
   def mount(params, _session, socket) do
-    Logger.inf9("Presence Mount", ansi_color: [:magenta, :yellow_background])
+    Logger.info("Presence Mount", ansi_color: [:magenta, :yellow_background])
     # # before subscribing, get current_player_count
     # topic = "home_page"
     # initial_count = Presence.list(topic) |> map_size
@@ -24,7 +24,7 @@ defmodule FanCanWeb.Components.PresenceDisplay do
     #   %{}
     # )
     # Assigning to parent LV socket. Use thin_wrapper
-    {:ok, 
+    {:ok,
       socket
       |> assign(:room, params.room)
       |> assign(:form, to_form(%{}, as: "message"))}
@@ -36,7 +36,7 @@ defmodule FanCanWeb.Components.PresenceDisplay do
   end
 
   def get_users(joins) do
-    for x <- Map.keys(joins) do 
+    for x <- Map.keys(joins) do
       joins
         |> Map.get(x)
         |> Map.get(:metas)
@@ -128,14 +128,14 @@ defmodule FanCanWeb.Components.PresenceDisplay do
     IO.inspect(users, label: "Users List")
     IO.inspect(Kernel.length(users), label: "Username List Length")
 
-    {:noreply, socket 
+    {:noreply, socket
       |> assign(user_id_list: user_id_list)
       |> assign(users: users)}
   end
 
   def handle_event("social", _value, socket) do
-    {:noreply, 
-      socket 
+    {:noreply,
+      socket
       |> push_redirect(to: "/forums/main")}
     # Get back to using changesets
     # {:noreply, assign(socket |> assign(changeset: changeset))}

@@ -9,7 +9,7 @@ defmodule FanCan.Accounts do
   alias FanCan.Accounts.{User, UserToken, UserNotifier, UserHolds}
   alias FanCan.Site.Forum.{Post, Thread}
   alias FanCan.Public.Election
-  alias FanCan.Core.Holds
+  alias FanCan.Core.Hold
 
   ## Database getters
 
@@ -50,7 +50,7 @@ defmodule FanCan.Accounts do
 
   def get_all_user_info(token) do
     query = from u in User,
-      join: h in Holds,
+      join: h in Hold,
       on: h.user_id == u.id,
       join: ut in UserToken,
       on: ut.user_id == u.id,
@@ -58,7 +58,7 @@ defmodule FanCan.Accounts do
       where: h.hold_cat == :user,
       # FIXME Change this to confirmed_at > inserted_at
       select: {u.username, u.email, u.inserted_at, {h.type, h.follow_ids}}
-      # select: {u.username, u.email, u.inserted_at, us.easy_games_played, us.easy_games_finished, us.med_games_played, us.med_games_finished, us.hard_games_played, us.hard_games_finished, 
+      # select: {u.username, u.email, u.inserted_at, us.easy_games_played, us.easy_games_finished, us.med_games_played, us.med_games_finished, us.hard_games_played, us.hard_games_finished,
       #           us.easy_poss_pts, us.easy_earned_pts, us.med_poss_pts, us.med_earned_pts, us.hard_poss_pts, us.hard_earned_pts}
       # distinct: p.id
       # where: u.age > type(^age, :integer)
@@ -82,7 +82,7 @@ defmodule FanCan.Accounts do
       when is_binary(token) do
     query = from u in User,
         join: ut in UserToken, on: u.id == ut.user_id,
-        join: h in Holds, on: u.id == h.user_id
+        join: h in Hold, on: u.id == h.user_id
     query = from [u, ut, h] in query,
           where: ut.token == ^token,
           where: h.hold_cat == ^cat,
@@ -98,7 +98,7 @@ defmodule FanCan.Accounts do
     candidate   = get_holds_by_token(token, :candidate)
     post        = get_holds_by_token(token, :post)
     thread      = get_holds_by_token(token, :thread)
-    
+
     %{:user_holds => user, :race_holds => race, :election_holds => election, :candidate_holds => candidate, :post_holds => post, :thread_holds => thread}
   end
 
@@ -126,12 +126,12 @@ defmodule FanCan.Accounts do
     Repo.all(query)
   end
 
-  def update_hold(%Holds{} = hold, attrs) do
+  def update_hold(%Hold{} = hold, attrs) do
     hold
-    |> Holds.changeset(attrs)
+    |> Hold.changeset(attrs)
     |> Repo.update()
   end
-  
+
 
   @doc """
   Gets a user by user token

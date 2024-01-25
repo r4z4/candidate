@@ -2,8 +2,8 @@ defmodule FanCanWeb.SubscriptionServer do
   use GenServer
   alias FanCan.Core.TopicHelpers
   alias FanCan.Accounts.UserHolds
-  alias FanCan.Core.Holds
-  
+  alias FanCan.Core.Hold
+
   def start do
     initial_state = []
     receive_messages(initial_state)
@@ -18,15 +18,11 @@ defmodule FanCanWeb.SubscriptionServer do
   end
 
   def handle_message({:subscribe_user_holds, user_holds}, state) do
-    for follow = %Holds{} <- user_holds do
-      IO.inspect(follow, label: "Type")
+    for {key, value} <- user_holds do
+      IO.inspect(key, label: "Type -- Key")
+      follow_ids = Enum.map(value, fn hold -> hold.hold_cat_id end)
       # Subscribe to user_holds. E.g. forums that user subscribes to
-      case follow.type do
-        :candidate -> TopicHelpers.subscribe_to_holds("candidate", follow.follow_ids)
-        :user -> TopicHelpers.subscribe_to_holds("user", follow.follow_ids)
-        :forum -> TopicHelpers.subscribe_to_holds("forum", follow.follow_ids)
-        :election -> TopicHelpers.subscribe_to_holds("election", follow.follow_ids)
-      end
+      TopicHelpers.subscribe_to_holds(key, follow_ids)
     end
     {:ok, []}
   end

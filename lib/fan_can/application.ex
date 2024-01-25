@@ -16,6 +16,7 @@ defmodule FanCan.Application do
       FanCanWeb.Telemetry,
       # Start the Ecto repository
       FanCan.Repo,
+      {Cachex, [ name: :main_cache, limit: 500, policy: Cachex.Policy.LRW, reclaim: 0.5 ]},
       # Start the PubSub system
       {Phoenix.PubSub, name: FanCan.PubSub},
       FanCan.Presence,
@@ -33,6 +34,8 @@ defmodule FanCan.Application do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: FanCan.Supervisor]
     Supervisor.child_spec(%{id: Goth, start: {Goth, :start_link, []}}, id: Goth)
+    # Supervisor.child_spec({Cachex, []}, id: :main_cache)
+    # Supervisor.child_spec({Cachex, [expiration: :timer.minutes(10)]}, id: :temp_cache)
     Supervisor.start_link(children, opts)
   end
 

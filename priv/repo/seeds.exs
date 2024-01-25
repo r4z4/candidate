@@ -19,7 +19,7 @@ alias FanCan.Site.Forum
 alias FanCan.Public.Election.Ballot
 alias FanCan.Site.Forum.Post
 alias FanCan.Site.Forum.Thread
-alias FanCan.Core.{Attachment, Holds}
+alias FanCan.Core.{Attachment, Hold}
 alias FanCan.Public.Election.{Race, Ballot, RaceHolds, ElectionHolds, CandidateHolds}
 
 Repo.insert_all(State, [
@@ -433,7 +433,7 @@ Repo.insert_all(Ballot, [
 # "Follow" = "Subscribe"
 
 
-Repo.insert_all(Holds, [
+Repo.insert_all(Hold, [
       # Jim went to town and chose them all
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :follow, hold_cat: :race, hold_cat_id: "5d99c305-7d3e-4279-acc6-e90764139bc2", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :alert, hold_cat: :race, hold_cat_id: "5d99c305-7d3e-4279-acc6-e90764139bc2", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
@@ -457,14 +457,14 @@ Repo.insert_all(Holds, [
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :vote, hold_cat: :candidate, hold_cat_id: "0ce64757-3bf2-4779-99ca-3b5b35d59c4d", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :vote, hold_cat: :candidate, hold_cat_id: "049acd0a-427b-4096-8cd5-1ce59845649e", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :vote, hold_cat: :candidate, hold_cat_id: "09f131ac-818c-4058-b9ce-dc3b91794416", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
-      # Post Holds Jim & Aaron
+      # Post Hold Jim & Aaron
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :upvote, hold_cat: :post, hold_cat_id: "956c5b4f-f1a1-42f0-b04d-bd80eddbe997", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :upvote, hold_cat: :post, hold_cat_id: "59e92082-6cc8-435d-9e71-59d3c89c9867", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :upvote, hold_cat: :post, hold_cat_id: "566f949a-be08-49e7-9c60-0c33d55b791b", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :upvote, hold_cat: :post, hold_cat_id: "1f310d22-6abb-4b9f-942a-53aafd7f2006", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :upvote, hold_cat: :post, hold_cat_id: "9de1ea76-ce5a-447f-a809-7b62dcbfa3a7", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "df18d5eb-e99e-4481-9e16-4d2f434a3711", type: :upvote, hold_cat: :post, hold_cat_id: "566f949a-be08-49e7-9c60-0c33d55b791b", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
-      # Thread Holds Jim & Aaron
+      # Thread Hold Jim & Aaron
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :share, hold_cat: :thread, hold_cat_id: "208272e9-1765-451f-9acb-79699ce5fc25", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "df18d5eb-e99e-4481-9e16-4d2f434a3711", type: :share, hold_cat: :thread, hold_cat_id: "208272e9-1765-451f-9acb-79699ce5fc25", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},
       %{user_id: "b5f44567-e031-44f1-aae6-972d7aabbb45", type: :like, hold_cat: :thread, hold_cat_id: "4fd6aa47-51da-4277-bca6-3a87b2153c20", updated_at: NaiveDateTime.local_now(), inserted_at: NaiveDateTime.local_now()},

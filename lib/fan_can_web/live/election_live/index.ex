@@ -3,22 +3,18 @@ defmodule FanCanWeb.ElectionLive.Index do
 
   alias FanCan.Public
   alias FanCan.Public.Election
-  alias FanCan.Core.{TopicHelpers, Holds}
+  alias FanCan.Core.{TopicHelpers, Hold}
   import FanCan.Accounts.Authorize, only: [get_permissions: 1, read?: 2, create?: 2, edit?: 2, delete?: 2]
 
   @impl true
   def mount(_params, _session, socket) do
     # IO.inspect(socket, label: "Election Socket")
     role = socket.assigns.current_user.role
-    for follow = %Holds{} <- socket.assigns.current_user_holds do
-      IO.inspect(follow, label: "Type")
+    for {key, value} <- socket.assigns.current_user_holds do
+      IO.inspect(key, label: "Type -- Key")
+      follow_ids = Enum.map(value, fn hold -> hold.hold_cat_id end)
       # Subscribe to user_holds. E.g. forums that user subscribes to
-      case follow.type do
-        :candidate -> TopicHelpers.subscribe_to_holds("candidate", follow.follow_ids)
-        :user -> TopicHelpers.subscribe_to_holds("user", follow.follow_ids)
-        :forum -> TopicHelpers.subscribe_to_holds("forum", follow.follow_ids)
-        :election -> TopicHelpers.subscribe_to_holds("election", follow.follow_ids)
-      end
+      TopicHelpers.subscribe_to_holds(key, follow_ids)
     end
 
     with %{post_ids: post_ids, thread_ids: thread_ids} <- socket.assigns.current_user_published_ids do
@@ -71,8 +67,8 @@ defmodule FanCanWeb.ElectionLive.Index do
     updated_messages = socket.assigns.messages ++ [new_message]
     IO.inspect(new_message, label: "New Message")
 
-    {:noreply, 
-     socket 
+    {:noreply,
+     socket
      |> assign(:messages, updated_messages)
      |> put_flash(:info, "PubSub: #{new_message.string}")}
   end
