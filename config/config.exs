@@ -60,6 +60,10 @@ config :hammer,
             [expiry_ms: 60_000 * 60 * 4,
              cleanup_interval_ms: 60_000 * 10]}
 
+config :fan_can, Oban,
+  repo: FanCan.Repo,
+  queues: [default: 10]
+
 # Configures Elixir's Logger
 # config :logger, :console,
 #   format: "$time $metadata[$level] $message\n",

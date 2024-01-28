@@ -34,3 +34,9 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Use low log rounds for testing
+config :brcypt_elixir, :log_rounds, 1
+
+# Turn off Oban running during testing
+config :fan_can, Oban, crontab: false, queues: false, prune: :disabled

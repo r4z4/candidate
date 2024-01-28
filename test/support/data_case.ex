@@ -24,6 +24,7 @@ defmodule FanCan.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import FanCan.DataCase
+      use Oban.Testing, repo: FanCan.Repo
     end
   end
 

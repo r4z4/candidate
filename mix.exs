@@ -62,6 +62,7 @@ defmodule FanCan.MixProject do
       {:pgvector, "~> 0.2.0"},
       {:scrivener_ecto, "~> 2.0"},
       {:dotenv_parser, "~> 2.0"},
+      {:oban, "~> 2.17"},
       {:logger_file_backend, "~> 0.0.10"}
     ]
   end
