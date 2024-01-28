@@ -25,7 +25,8 @@ defmodule FanCan.Application do
       {Finch, name: FanCan.Finch},
       # Start the Endpoint (http/https)
       FanCanWeb.Endpoint,
-      {Task.Supervisor, name: FanCan.TaskSupervisor}
+      {Task.Supervisor, name: FanCan.TaskSupervisor},
+      Supervisor.child_spec({FanCan.Servers.RepServer,  [:rep_server, []]}, id: :rep_server)
       # Start a worker by calling: FanCan.Worker.start_link(arg)
       # {FanCan.Worker, arg}
     ]

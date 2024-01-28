@@ -1,4 +1,5 @@
 defmodule FanCan.Core.Utils do
+    alias __MODULE__
 
     # Ensure these are alphabetical. Legiscan API state IDs based on that. NE = 27 & MN = 23
     def states do
@@ -72,6 +73,13 @@ defmodule FanCan.Core.Utils do
 
     def forum_categories do
         [:Site, :General, :Politics, :State]
+    end
+
+    def get_state_str(abbr_atom) do
+        Enum.zip(Utils.states, Utils.state_names ++ Utils.territories)
+          |> Enum.find(fn {abbr, _name} -> abbr == abbr_atom end)
+          |> Kernel.elem(1)
+          |> Atom.to_string()
     end
 
 end

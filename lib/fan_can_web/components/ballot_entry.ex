@@ -61,7 +61,7 @@ defmodule FanCanWeb.Components.BallotEntry do
   def voted_for?(id, holds) do
     Enum.member?(holds, id)
   end
-  
+
   def display(assigns) do
     ~H"""
       <!--<img class="h-56 lg:h-60 w-full object-cover" src={@ballot_race.image_path} alt="" />-->
@@ -75,7 +75,7 @@ defmodule FanCanWeb.Components.BallotEntry do
           <ul :for={candidate <- @ballot_race.candidates} class="mb-2">
           <button
             type="button"
-            phx-click="vote_casted" 
+            phx-click="vote_casted"
             phx-value-id={candidate.id}
             value={@ballot_race.district}
             class="inline-block rounded border-2 border-success w-3/3 px-2 pb-[6px] pt-2 text-xs font-medium uppercase leading-normal text-success transition duration-150 ease-in-out hover:border-success-600 hover:bg-neutral-500 hover:bg-opacity-10 hover:text-success-600 focus:border-success-600 focus:text-success-600 focus:outline-none focus:ring-0 active:border-success-700 active:text-success-700 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
@@ -94,14 +94,6 @@ defmodule FanCanWeb.Components.BallotEntry do
           </div>
       </div>
     """
-  end
-
-
-  def get_str(state) do
-    Enum.zip(Utils.states, Utils.state_names ++ Utils.territories)
-      |> Enum.find(fn {abbr,name} -> abbr == state end)
-      |> Kernel.elem(1)
-      |> Atom.to_string()
   end
 
 end

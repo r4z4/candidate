@@ -17,6 +17,7 @@ defmodule FanCanWeb.ElectionLive.Main do
     Logger.info("GenServer Resp = #{inspect resp}", ansi_color: :magenta_background)
     test_message = %{type: :candidate, string: "test_message"}
     FanCanWeb.Endpoint.broadcast!("user_" <> socket.assigns.current_user.id, "new_message", test_message)
+    # FIXME: Use CacheEx
     legislators =
       case socket.assigns.use_local_data do
         true -> Public.list_legislators(socket.assigns.current_user.state)
@@ -53,72 +54,7 @@ defmodule FanCanWeb.ElectionLive.Main do
   end
 
   defp get_session_people(session_id, user) do
-    IO.puts("get_session_people")
-    election_id = Election.get_election_id(user.state, Constants.current_election)
-    # state_str = get_str(state)
-    # IO.inspect(state_str, label: "State")
-    {:ok, resp} =
-      Finch.build(:get, "https://api.legiscan.com/?key=#{System.fetch_env!("LEGISCAN_KEY")}&op=getSessionPeople&id=#{session_id}")
-      |> Finch.request(FanCan.Finch)
-
-    {:ok, body} = Jason.decode(resp.body)
-
-    # IO.inspect(body["offices"], label: "Offices")
-    # IO.inspect(body, label: "session people")
-    list = body["sessionpeople"]["people"]
-    # Insert into DB as JSONB now too
-    for item <- list do
-      attrs = %{api_map: item}
-      case Public.create_legislator_json(attrs) do
-        {:ok, leg} -> :ok
-        {:error, changeset} -> IO.puts("Nope")
-      end
-    end
-
-    struct_list = to_structs(list)
-    # Return it as a list of map-items
-    case Public.create_legislators(struct_list) do
-      {id, legislators} ->
-        legislators = legislators
-        create_ballot(election_id, user.id)
-        create_ballot_races(legislators, election_id)
-        legislators
-
-      {:error, resp} -> IO.inspect(resp, label: "RESP")
-        {:error, "Error in Persist People"}
-    end
-  end
-
-  defp create_ballot(election_id, user_id) do
-    attrs = %{election_id: election_id, user_id: user_id, submitted: false}
-    case Election.create_ballot(attrs) do
-      {:ok, ballot} -> IO.puts("ballot")
-
-      {:error, resp} -> IO.inspect(resp, label: "RESP")
-        {:error, "Error in ballot"}
-    end
-  end
-
-  defp create_ballot_races(legislators, election_id) do
-    IO.inspect(List.first(legislators), label: "LIST first leg")
-    race_list = Enum.map(legislators, fn leg -> %{election_id: election_id, candidates: [leg.id], seat: String.to_existing_atom(leg.role), district: leg.district, inserted_at: NaiveDateTime.local_now(), updated_at: NaiveDateTime.local_now()} end)
-    IO.inspect(race_list, label: "race_list")
-    case Public.create_leg_ballot_races(race_list) do
-      {:ok, id} -> IO.inspect(id, label: "ID of Created Insert all")
-      {:error, resp} -> IO.inspect(resp, label: "RESP")
-        {:error, "Error in Persist People"}
-    end
-  end
-
-  defp to_structs(list) do
-    # IO.inspect(list, label: "LIST")
-    for item <- list do
-      leg_with_atom_keys = for {key, val} <- item, into: %{} do
-        {String.to_existing_atom(key), val}
-      end
-      # leg_struct = struct(Legislator, leg_with_atom_keys)
-      leg_with_atom_keys
-    end
+    GenServer.call(:rep_server, {:get_session_list, session_id, user})
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do

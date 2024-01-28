@@ -71,7 +71,7 @@ defmodule FanCanWeb.CandidateLive.Main do
 
   defp api_query(state) do
     IO.puts("Api Query firing")
-    # state_str = get_str(state)
+    # state_str = Utils.get_state_str(state)
     # IO.inspect(state_str, label: "State")
     {:ok, resp} =
       Finch.build(:get, "https://api.propublica.org/congress/v1/117/nominees/state/NE.json", [{"X-API-Key", System.fetch_env!("PROPUB_KEY")}])

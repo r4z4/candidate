@@ -390,15 +390,8 @@ defmodule FanCanWeb.HomeLive do
   #   resp
   # end
 
-  def get_str(state) do
-    Enum.zip(Utils.states, Utils.state_names ++ Utils.territories)
-      |> Enum.find(fn {abbr, _name} -> abbr == state end)
-      |> Kernel.elem(1)
-      |> Atom.to_string()
-  end
-
   def api_query(state) do
-    state_str = get_str(state)
+    state_str = Utils.get_state_str(state)
     {:ok, resp} =
       Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/representatives?address=#{state_str}&key=#{System.fetch_env!("GCLOUD_API_KEY")}")
       |> Finch.request(FanCan.Finch)
@@ -425,7 +418,7 @@ defmodule FanCanWeb.HomeLive do
 
   defp floor_query(chamber \\ "house") do
     date = Date.utc_today()
-    # state_str = get_str(state)
+    # state_str = Utils.get_state_str(state)
     # IO.inspect(state_str, label: "State")
     {:ok, resp} =
       Finch.build(:get, "https://api.propublica.org/congress/v1/#{chamber}/floor_updates/#{date.year}/#{date.month}/#{date.day}.json", [{"X-API-Key", System.fetch_env!("PROPUB_KEY")}])

@@ -87,7 +87,7 @@ defmodule FanCan.Public do
   end
 
   def list_legislators(state) do
-    state_id = 
+    state_id =
       Enum.with_index(Utils.states)
       |> Enum.find(fn {x,y} -> x == state end)
       |> Kernel.elem(1)
@@ -101,9 +101,10 @@ defmodule FanCan.Public do
   end
 
   def create_leg_ballot_races(race_list \\ []) do
-    case Repo.insert_all(Race, race_list, returning: true) do
-      {id, race_list} -> {:ok, id}
-      {:error, _} -> IO.puts("RACE LIST Error")
+    {id, race_list} = Repo.insert_all(Race, race_list, returning: true)
+    case Enum.empty?(race_list) do
+      true -> {:error, "Error"}
+      false -> {:ok, "Added #{id}"}
     end
   end
 
@@ -114,7 +115,7 @@ defmodule FanCan.Public do
 
   def state_records_exist?(state) do
     # Legiscan IDs alphabetical
-    state_id = 
+    state_id =
       Enum.with_index(Utils.states)
       |> Enum.find(fn {x,y} -> x == state end)
       |> Kernel.elem(1)
@@ -142,7 +143,7 @@ defmodule FanCan.Public do
       where: c.state == ^state,
       # & type = :vote
       select: c
-    mayor = FanCan.Repo.one(query)
+    FanCan.Repo.one(query)
   end
 
   @doc """
@@ -218,7 +219,7 @@ defmodule FanCan.Public do
   """
   def list_elections_and_ballots do
     elections = Repo.all(Election)
-    final_elections = 
+    final_elections =
       for election <- elections do
         # ballot_ids = Election.get_ballot_ids_by_election_id(election.id)
         ballots = Election.get_ballots_by_election_id(election.id)
