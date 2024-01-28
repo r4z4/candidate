@@ -10,7 +10,7 @@ defmodule FanCanWeb.ForumLive.Main do
     {:ok,
       socket
       |> stream(:forums, Site.list_forums())
-      |> assign(:social_count, 0)}
+      |> assign(:count, 0)}
   end
 
   @impl true
@@ -55,12 +55,12 @@ defmodule FanCanWeb.ForumLive.Main do
   @impl true
   def handle_info(
       %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
-      %{assigns: %{social_count: count}} = socket
+      %{assigns: %{forum_count: count}} = socket
     ) do
     IO.inspect(count, label: "Count in Forum")
-    social_count = count + map_size(joins) - map_size(leaves)
+    forum_count = Presence.list("Forum") |> map_size
 
-    {:noreply, assign(socket, :social_count, social_count)}
+    {:noreply, assign(socket, :forum_count, forum_count)}
   end
 
   @impl true

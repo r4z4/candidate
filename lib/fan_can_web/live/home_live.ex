@@ -10,6 +10,7 @@ defmodule FanCanWeb.HomeLive do
   alias FanCan.Core.Utils
   alias FanCan.Site
   alias FanCanWeb.Components.MailboxCard
+  alias FanCan.Presence
 
 #   def mount(%{"token" => token}, _session, socket) do
 #     socket =
@@ -123,7 +124,8 @@ defmodule FanCanWeb.HomeLive do
      # |> assign(:floor_actions, Task.await(floor_task, 10000))
      |> assign(:floor_actions, floor_result)
      |> assign(:message_count, Kernel.length(FanCan.Site.list_user_messages(user_id)))
-     |> assign(:social_count, 0)}
+     |> assign(:lobby_count, 0)
+     |> assign(:forum_count, 0)}
   end
   # this is the order returned from the query in accounts.ex
   defp sub_and_add(hold_cat, _socket) do
@@ -156,7 +158,7 @@ defmodule FanCanWeb.HomeLive do
     ~H"""
     <div>
     <.live_component module={MailboxCard} message_count={@message_count} user_id={@current_user.id} id="mailbox_card" />
-    <.live_component module={PresenceDisplay} social_count={@social_count} user_follow_holds={@current_user_holds.user_holds} user_id={@current_user.id} username={@current_user.username} room="Lobby" id="presence_display" />
+    <.live_component module={PresenceDisplay} lobby_count={@lobby_count} user_follow_holds={@current_user_holds.user_holds} user_id={@current_user.id} username={@current_user.username} room="Lobby" id="presence_display" />
       <.header class="text-center">
         Hello <%= assigns.current_user.username %> || Welcome to Fantasy Candidate
         <:subtitle>Not Really Sure What We're Doing Here Yet</:subtitle>
@@ -353,14 +355,18 @@ defmodule FanCanWeb.HomeLive do
   @impl true
   def handle_info(
       %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
-      %{assigns: %{social_count: count}} = socket
+      %{assigns: %{lobby_count: _lobby_count, forum_count: _forum_count}} = socket
     ) do
-    IO.inspect(count, label: "Count in Home Live")
     IO.inspect(joins, label: "Joins")
     IO.inspect(leaves, label: "Leaves")
-    social_count = count + map_size(joins) - map_size(leaves)
+    lobby_count = Presence.list("Lobby") |> map_size
+    forum_count = Presence.list("Forums") |> map_size
+    # social_count = count + map_size(joins) - map_size(leaves)
 
-    {:noreply, assign(socket, :social_count, social_count)}
+    {:noreply,
+      socket
+      |> assign(:lobby_count, lobby_count)
+      |> assign(:forum_count, forum_count)}
   end
 
   @impl true

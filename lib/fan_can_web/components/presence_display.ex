@@ -36,12 +36,14 @@ defmodule FanCanWeb.Components.PresenceDisplay do
   end
 
   def get_users(joins) do
-    for x <- Map.keys(joins) do
-      joins
-        |> Map.get(x)
-        |> Map.get(:metas)
-        |> List.first()
-    end
+    user_list =
+      for x <- Map.keys(joins) do
+        joins
+          |> Map.get(x)
+          |> Map.get(:metas)
+          |> List.first()
+      end
+    Enum.map(user_list, fn user -> %{:username => user.username, :user_id => user.user_id} end) |> Enum.uniq()
   end
 
   def update(assigns, socket) do
@@ -50,6 +52,8 @@ defmodule FanCanWeb.Components.PresenceDisplay do
     # topic = "Lobby"
     initial_count = Presence.list(assigns.room) |> map_size
     users = Presence.list(assigns.room) |> get_users()
+
+    IO.inspect(users, label: "Users>>>")
     # Subscribe to the topic
     FanCanWeb.Endpoint.subscribe(assigns.room)
 
@@ -68,12 +72,12 @@ defmodule FanCanWeb.Components.PresenceDisplay do
     {:ok,
       socket
       |> assign(:users, users)
-      |> assign(:social_count, initial_count)
+      |> assign(:count, initial_count)
       |> assign(:form, to_form(%{}, as: "message"))}
   end
 
   slot :inner_block, required: true do
-    "Innr Block"
+    "Inner Block"
   end
 
   def render(assigns) do
