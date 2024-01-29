@@ -92,6 +92,23 @@ defmodule FanCan.Servers.RepServer do
     %{"offices" => body["offices"], "officials" => body["officials"]}
   end
 
+  # https://www.opensecrets.org/api/?method=candSummary&cid=N00050145&cycle=2022&output=json&apikey=8345e4735ec03ad87024bdd44a5583e1
+
+  def open_secrets_data(state) do
+    # state_str = get_state_str(state)
+    output = "json"
+    {:ok, resp} =
+      Finch.build(:get, "https://www.opensecrets.org/api/?method=getLegislators&id=#{state}&output=#{output}&apikey=#{System.fetch_env!("OPEN_SECRETS_API_KEY")}")
+      |> Finch.request(FanCan.Finch)
+
+
+    {:ok, body} = Jason.decode(resp.body)
+    IO.inspect(body, label: "Body")
+
+    %{"legislator_list" => body["response"]["legislator"]}
+  end
+
+
   defp floor_query(chamber \\ "house") do
     date = Date.utc_today()
     # state_str = Utils.get_state_str(state)
