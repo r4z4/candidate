@@ -37,7 +37,7 @@ defmodule FanCanWeb.Components.LegBallotEntry do
       <!--<img class="h-56 lg:h-60 w-full object-cover" src={@ballot_race.image_path} alt="" />-->
       <div class="p-2">
         <div class="grid grid-cols-6 mb-2">
-          <h3 class="col-span-5 font-semibold text-lg leading-6 text-white h-5">
+          <h3 class="col-span-5 font-semibold text-sm leading-6 text-white h-5">
             <span class="ml-3 text-purple" :if={@ballot_race.district}>District: <%= @ballot_race.district %></span><span>Seat: <%= @ballot_race.seat %></span>
           </h3>
           <button type="button" phx-click="reset_ballot" phx-value-id={@ballot_race.id} phx-value-candidates={Enum.map(@ballot_race.candidates, fn x -> x.id end) |> List.to_string()}>

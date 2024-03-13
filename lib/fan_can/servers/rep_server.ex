@@ -1,8 +1,8 @@
 defmodule FanCan.Servers.RepServer do
   use GenServer
-  alias FanCan.Public.StateRepData
-  alias FanCan.Core.Utils
+  alias FanCan.Public.{StateRepData, Election}
   alias FanCan.Public
+  alias FanCan.Core.{Constants, Utils}
 
   @time_interval_ms 2000
   @call_interval_ms 3000

@@ -5,6 +5,8 @@ defmodule FanCan.Repo.Migrations.CreateRaces do
     create table(:races, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :candidates, {:array, :binary_id}
+      add :candidate_one, references(:candidates, type: :binary_id, on_delete: :nothing)
+      add :candidate_two, references(:candidates, type: :binary_id, on_delete: :nothing)
       add :seat, :string
       add :election_id, references(:elections, type: :binary_id, on_delete: :nothing)
       add :elect_percentage, :float

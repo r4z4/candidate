@@ -57,12 +57,17 @@ defmodule FanCanWeb.CandidateLive.Main do
       Finch.build(:get, "https://civicinfo.googleapis.com/civicinfo/v2/voterinfo?address=12%20M%20#{user.city}%2C%20#{user.state}&electionId=2000&key=#{System.fetch_env!("GCLOUD_API_KEY")}")
       |> Finch.request(FanCan.Finch)
 
+    dbg(resp)
     {:ok, body} = Jason.decode(resp.body)
+
+    dbg(body)
 
     filtered =
       Enum.filter(body["contests"], fn(contest) ->
         Map.has_key?(contest, "candidates")
       end)
+
+    dbg(filtered)
 
     # IO.inspect(body, label: "Body")
     # IO.inspect(filtered, label: "Filtered")

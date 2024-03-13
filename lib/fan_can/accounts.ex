@@ -127,6 +127,7 @@ defmodule FanCan.Accounts do
   end
 
   def update_hold(%Hold{} = hold, attrs) do
+    dbg(attrs)
     hold
     |> Hold.changeset(attrs)
     |> Repo.update()
@@ -138,7 +139,7 @@ defmodule FanCan.Accounts do
 
   ## Examples
 
-      iex> get_user_data_by_token("currect_token)
+      iex> get_user_data_by_token("current_token)
       %User{}
 
       iex> get_user_data_by_token("invalid_token or nil")

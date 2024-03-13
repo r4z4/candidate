@@ -6,7 +6,7 @@ defmodule FanCan.Public.Election.Ballot do
   @foreign_key_type :binary_id
   schema "ballots" do
     field :attachment, :binary_id
-    field :user_id, :binary_id
+    belongs_to :elect_fk, FanCan.Accounts.User, foreign_key: :user_id, type: :binary_id
     field :vote_map, :map
     field :submitted, :boolean
     field :columns, :integer

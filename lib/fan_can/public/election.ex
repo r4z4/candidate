@@ -3,6 +3,7 @@ defmodule FanCan.Public.Election do
   import Ecto.Changeset
   alias FanCan.Core.Utils
   alias FanCan.Public
+  alias FanCan.Accounts
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -63,10 +64,11 @@ defmodule FanCan.Public.Election do
   end
 
   def get_candidates(race_id) do
-    query = from c in Candidate,
-      join: r in Race,
-      where: c.id in r.candidates,
-      where: r.id == ^race_id
+    query = from r in Race,
+      join: c1 in Candidate, on: c1.candidate_id == r.candidate_one,
+      join: c2 in Candidate, on: c2.candidate_id == r.candidate_two,
+      where: r.id == ^race_id,
+      select: %{candidate_one: c1, candidate_two: c2}
     FanCan.Repo.all(query)
   end
 
@@ -407,7 +409,7 @@ defmodule FanCan.Public.Election do
     hold = FanCan.Repo.one(query)
 
     if hold do
-      Accounts.update_hold(hold, active: true)
+      Accounts.update_hold(hold, %{active: true})
     else
       case Map.fetch(attrs, :hold_cat) do
         {:ok, :candidate} ->
@@ -451,7 +453,7 @@ defmodule FanCan.Public.Election do
       where: e.id in ^hold_ids,
       # & type = :vote
       select: e
-    elections = FanCan.Repo.all(query)
+    FanCan.Repo.all(query)
   end
 
   def get_election_id(state, desc) do

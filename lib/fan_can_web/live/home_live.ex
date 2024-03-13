@@ -94,14 +94,23 @@ defmodule FanCanWeb.HomeLive do
           if value do
             value
           else
-            floor_task =
-              Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
-                IO.puts("Hey from a task")
-                _floor_actions = floor_query("house")
-              end)
-            floor_result = Task.await(floor_task, 10000)
-            Cachex.put!(:main_cache, "floor_task_result_#{user_id}", floor_result)
-            floor_result
+          # Send back blank object for now
+            %{
+              "chamber" => "Error",
+              "congress" => "9999",
+              "date" => "1900-01-01",
+              "floor_actions" => [],
+              "num_results" => 0,
+              "offset" => 0
+            }
+            # floor_task =
+            #   Task.Supervisor.async(FanCan.TaskSupervisor, fn ->
+            #     IO.puts("Hey from a task")
+            #     _floor_actions = floor_query("house")
+            #   end)
+            # floor_result = Task.await(floor_task, 20000)
+            # Cachex.put!(:main_cache, "floor_task_result_#{user_id}", floor_result)
+            # floor_result
           end
         {:error, _value} ->
           # Send back blank object for now

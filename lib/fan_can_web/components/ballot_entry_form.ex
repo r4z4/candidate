@@ -61,8 +61,8 @@ defmodule FanCanWeb.Components.BallotEntryForm do
       <form id={@ballot_race.id}>
       <!--<img class="h-56 lg:h-60 w-full object-cover" src={@ballot_race.image_path} alt="" />-->
       <div class="p-2">
-          <h3 class="font-semibold text-lg leading-6 text-white my-2">
-              <%= @ballot_race.seat %> <span class="ml-3 text-purple" :if={@ballot_race.district}>||  District: <%= @ballot_race.district %></span>
+          <h3 class="font-semibold text-sm leading-6 text-white my-2">
+              <%= @ballot_race.seat %> <span class="ml-3 text-purple text-xs" :if={@ballot_race.district}>||  District: <%= @ballot_race.district %></span>
           </h3>
           <ul :for={candidate <- @ballot_race.candidates} class="">
             <li class="grid grid-cols-6 gap-0">
